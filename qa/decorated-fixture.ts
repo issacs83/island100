@@ -1,0 +1,2 @@
+import {emptyWorld,addPlayer,act} from '../src/shared';import {encodeSave} from '../src/save-file';import {writeFileSync} from 'node:fs';
+const w=emptyWorld(),p=addPlayer(w,'solo','박하준');p.x=1260;p.y=660;p.ready=true;p.bag={wood:100,stone:100,fiber:100,ironOre:10,bottle:1,pot:1};act(w,p.id,'house-build');for(const[k,x,y]of [['bed',0,0],['chair',2,0],['table',3,1],['lamp',5,0],['chest',0,3],['plant',5,4],['rug',2,3],['shell',4,4]]){act(w,p.id,'house-craft',k);act(w,p.id,'house-place',{kind:k,x,y});}writeFileSync('qa/decorated.island.json',encodeSave(w,p.id));

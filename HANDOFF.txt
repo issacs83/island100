@@ -1,0 +1,227 @@
+무인도 100일 — 다음 에이전트 인계
+갱신일: 2026-10-08 (사용자 시간대 America/Los_Angeles) · 서버 2026-10-09 12:24 KST
+서버 소스 및 기록을 기준으로 다음 작업을 이어갈 것.
+
+1. 서버 위치
+게임: http://125.176.45.19:7749/
+SSH 사용자/호스트: issacs@125.176.45.19
+소스 최신 링크: /home/issacs/island100/source/current
+이 인계의 스냅샷: /home/issacs/island100/source/snapshots/20261004-open-world-style-fix
+인계 기록 최신 링크: /home/issacs/island100/handoff/current
+서비스 실행 위치: /home/issacs/island100/releases/20261004-review
+실제 저장 데이터: /home/issacs/island100/data
+서비스: systemctl --user status island100.service
+자격 증명은 문서/소스/공개 웹 경로에 기록하지 않는다. 현재 세션에서 사용자가 제공한 접속 정보를 사용한다.
+서버 로그/시간대(KST)와 사용자의 날짜(Pacific)가 다를 수 있다. 사용자 보고 날짜는 사용자 시간대 기준.
+
+2. 사용자의 확정 요구
+- 앞으로 수정본은 검증 후 7749 서버에 직접 반영하고, 소스와 작업 기록도 이 서버에 남긴다.
+- 동물의 숲 전반을 분석하고 기록한 다음 기획/아이템/액션/생활/미니게임에 적용한다.
+- 전체 분석 완료라고 주장하지 말 것. 공식 Direct 전체 자막과 주요 장면, 공식 안내를 검토한 상태이며
+  모든 영상 프레임/아이템/가구/상황을 직접 플레이한 전수 분석은 아직 아니다.
+- 집 입장 시 실내가 주 화면이어야 한다. 단순 꾸미기 팝업으로 되돌리지 않는다.
+- 모든 도구를 직접 테스트하고 손잡이·크기·준비·접촉·반응·보상·복귀와 효과음을 확인한다.
+- 휴대폰 중앙 조작 공간 확보. 웹/Android/iPhone/iPad에서 사용할 수 있도록 구현.
+- 하준: 초4 남자, 주인공/동그라미하준, 갈색 머리, 충암초 노란 하복 체육복/짙은 반바지/흰 신발.
+- 여름: 초4 남자, 하준보다 작음, 검정 머리/주황 옷, 안경 없음. 혼자 플레이에서는 자율 NPC.
+- 선생님 제외. 친구 이름 등록 기능. 발리 수학여행 중 무인도 불시착이라는 기존 이야기 유지.
+- 하루는 300초. 유한 재료와 재생 시간. 낚시 어종별 미끼. 파일 저장/불러오기. 밤 몬스터.
+- 모험 맵은 99 Nights 참고, 생활/도구는 Animal Crossing 참고, 픽셀 캐릭터/아이템과 자연 환경.
+- 바위/텐트는 파도/풀/불에 따라 흔들리면 안 된다. 충돌, 배경 움직임, 발소리 중요.
+
+3. 읽을 문서 순서
+HANDOFF.txt → ANIMAL-CROSSING-APPLICATION-PLAN.txt → VISUAL-REVIEW-2026-10-04.txt
+→ VIDEO-ANALYSIS-2020-DIRECT.txt → LIFE-DESIGN-2026-10-04.txt → README.txt.
+ART-UPDATE-PROMPTS.txt / ART-PROMPTS.json / HAJUN-ART-PROMPTS.json은 그림 출처와 생성 프롬프트.
+과거 문서는 당시 상태가 일부 남아 있다. 최신 인계와 검증 기록을 우선하고 모순은 수정한다.
+새 작업마다 WORK-LOG.txt를 갱신하고 HANDOFF.txt의 현재 상태/다음 작업도 갱신한다.
+
+4. 구현 및 파일 안내
+src/main.ts: 시작/가방/메뉴/실내 전환/온라인 연결/HUD.
+src/scene.ts: Phaser 실외 렌더, 카메라, 픽셀 애니메이션, 도구 손 위치, 파도/풀/불/조명/동물.
+src/shared.ts: 클라이언트·서버 공통 생존/행동/아이템/시간/동물/몬스터/NPC/대상 선택.
+src/terrain.ts: 지면, 충돌, 우회 경로. src/exploration.ts와 map.ts: 탐험 지도.
+src/housing.ts: 집 건설/가구 수량/배치 크기/충돌/사용/러그 층/경로/저장 검증.
+src/house-ui.ts: 전용 실내 전체 화면 내용, 클릭/키보드 이동, 꾸미기, 목공 연습.
+src/style.css: 반응형 HUD/실내/가방. .in-home / .home-world가 실내 주 화면 전환.
+src/resources.ts: 유한 수량/게임 시간 재생. src/items.ts: 아이템 그림과 설명.
+src/audio.ts: 합성 환경음/발소리/도구 효과음. src/music.ts: 창작 상황별 음악.
+src/voice.ts: 사전 생성 한국어 남성 대사. 실제 아동 배우 녹음은 아니다.
+src/save-file.ts: .island.json 직렬화/검증. src/storage.ts: IndexedDB.
+server/index.ts: HTTP 정적 파일, /health, /ws 1~4명 협동, 서버 저장.
+public/: 실제 그림/음성 자산 전체. scripts/build-server.mjs: release 생성.
+
+5. 가장 최근 구현 상태
+- 별도 실내 주 화면: 입장→걷기→가방 닫고 실내 유지→가구 사용→문/버튼 퇴실.
+- 실내 걷기 위치 보간과 걷기 프레임 위상 유지. 꾸미기 모드에서만 제작 목록.
+- 8가구, 큰 가구 footprint, 러그 위 가구, 의자/침대/조명/공유 수납, 목공 타이밍 연습.
+- 실내 작업 완료와 실외 이동/몬스터 표적 분리. 실내 생활 중 시간 진행.
+- 도구에 맞는 대상 우선 선택: 곡괭이를 들고 돌 옆에서 코코넛을 줍던 UI 오류 수정.
+- 하준 나무창/돌창/활 24프레임 전용 그림. 13종 도구 그림 가방/장착/사용.
+- 모바일 4상태 한 줄과 미션 접기. 발소리 oscillator 제거, 마찰음 축소, 도구 접촉 효과음.
+- 재료 재생, 철광석, 집/가구/타이머 저장. 일부 배경 원화 요소는 고정 상태.
+
+6. 검증 증거 (이 문서 작성 전 마지막 기능 배포 기준)
+TypeScript 검사 및 프로덕션 빌드 통과. 전체 자동 검사 64개 통과 (이전 기능 배포 59개에 확장/복원/미리보기 검사 5개 추가).
+7749 서버 브라우저에서 13도구 직접 사용, 낚시 입질→릴 감기/튀는 물고기, 사냥 성공/빗나감 확인.
+390×844에서 실내 입장/키보드/바닥 길찾기/가방 복귀/의자 앉기/실외 퇴실 확인.
+러그 위 의자 제작·배치(의자 2개) 확인. 프론트엔드 콘솔 오류 없음. /health ok=true.
+증거 이미지: evidence/house-main-screen-server.png, bow-action-server.jpg, woodSpear-action-server.jpg.
+실제 iPhone/iPad 기기와 모든 방향 인체 포즈를 검증한 것은 아니다.
+합성 사운드 코드는 점검했으나 실제 이어폰/스피커에서 모든 소리를 청취했다고 주장하지 않는다.
+자동 테스트 통과는 그래픽/움직임/음질 완성 판정이 아니다.
+
+7. 다음 에이전트의 첫 작업
+1) 위 문서와 서버 소스를 읽고 서비스 실행 경로/최신 소스 링크/배포 파일 해시를 확인.
+2) 동물의 숲 공식 자료를 기능별로 계속 분석. 확인한 시간대/출처/관찰/적용/미검증을 기록.
+3) P0/P1: 도구별 전 방향 동작, 여름 전용 동작, 가구 사용 자세, 배치 미리보기, 자연 발소리 품질.
+4) P2 이후 곤충/심기/성장/매장물/도감/교류/시설/잠수 순서로 기존 계획을 이어감.
+5) 수정→필요 검사→브라우저 직접 조작→저장 확인→7749 배포→서버 화면 확인→기록 갱신.
+
+8. 알려진 제한과 재확인 항목
+- 집은 공유 1채/6×6. 여러 방/대지 선택/외관 확장/벽·천장·탁상 배치 미구현.
+- 실내는 DOM/CSS 주 화면이며 실외 Phaser와 렌더 방식이 다르다. 연속 공간 이동/모든 방향 자세는 보완 대상.
+- 실내 다른 플레이어 표시와 가구 변경 즉시 반영은 미완성. 협동 실내 UI 전수검수 필요.
+- 파일 decodeSave가 집 안 위치/의자·침대 자세를 보존하도록 수정됨. 막힌 위치는 실내 출입구로 보정.
+- 기존 큰 가구 크기 변경 이전의 겹치는 배치 기록은 restoreHouse에서 거절할 수 있음. 이행 처리 검토.
+- shared.step의 동물 접근 판정을 outdoors 배열로 수정. 집 안 플레이어는 실외 동물 접근에서 제외.
+- 모든 도구에 전 방향 전용 자세가 없으며 여름 전투는 하준 전용 시트와 다르다.
+- 배경에 그려진 물/식물 일부는 정적. 실제 레이트레이싱이 구현된 것으로 표현하지 않는다.
+- 100일 퀴즈는 첫날만 구현. 곤충/정원/잠수/상점/주민 부탁/행사 등은 미구현 계획.
+- 로컬 주소와 7749 주소의 브라우저 저장 공간은 다르다. 실제 사용자 저장 파일 이전을 수행했다고 주장하지 않는다.
+- qa/*.island.json은 테스트용 수량/배치. 실제 플레이 기록 대신 사용자에게 넣지 않는다.
+- ?showcase=1은 자동 저장하지 않는 임시 동작 체험이다. 일반 플레이는 기본 URL 사용.
+- 프로젝트는 현재 Git 저장소가 아니다. 서버 날짜별 소스 스냅샷으로 이력을 남길 것.
+
+9. 실행/검사/배포
+서버 Ubuntu22.04/ARM64, Node22.23.3(/usr/bin/node). 실행 소스와 빌드 release를 구분한다.
+소스에서 npm install 후 npm run build, npm test, node scripts/build-server.mjs.
+잠금 파일 pnpm-lock.yaml을 포함했으므로 설치 방식/새 잠금 파일 변경은 기록한다.
+로컬 npm이 없는 경우 기존 Node 경로로 실행 가능:
+PATH=/Users/jun/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH
+node node_modules/typescript/bin/tsc --noEmit
+node node_modules/tsx/dist/cli.mjs --test tests/*.test.ts
+node node_modules/vite/bin/vite.js build
+node scripts/build-server.mjs
+소스 묶음 무결성: node scripts/source-manifest.mjs <소스 디렉터리>로 SHA-256 목록 생성,
+서버 스냅샷 안에서 sha256sum -c SOURCE-MANIFEST.sha256으로 파일 전체 확인.
+node_modules를 Mac에서 ARM 서버로 복사하지 않는다. 대상 서버에서 의존성을 설치한다.
+서비스 환경: HOST=0.0.0.0 PORT=7749 DATA_DIR=/home/issacs/island100/data.
+빌드 파일은 사용자 systemd 서비스의 WorkingDirectory 아래 server.mjs와 dist/에 배포.
+배포 전 기존 실행 묶음을 보관하고, 데이터 디렉터리는 덮어쓰지 않는다.
+systemctl --user restart island100.service 후 curl -fsS http://127.0.0.1:7749/health 와 실제 브라우저 확인.
+소스 스냅샷은 코드/그림/음성/테스트/기획/lockfile 포함, node_modules/dist/release/data 제외.
+handoff/current는 같은 스냅샷을 가리킨다. 문서와 소스는 SSH로 읽는 서버 디렉터리에 있다.
+이후 갱신은 새 스냅샷 생성→검증→current 링크 갱신, 이전 스냅샷 보존.
+
+10. 최신 확장 업데이트 (2026-10-04)
+맵 6720×3780: 기존 3360×945 대비 면적 8배. 기존 캠프/원화/좌표 보존.
+남쪽 조개 해변/바람 초원/동쪽 광석 고원/깊은 야자 숲/남쪽 숲 쉼터/동쪽 끝 탐험지 추가.
+24개 상호작용 장소(낚시 1 + 유한 자원 23), 동물 6마리 추가, 장식 나무 충돌/바람 흔들림.
+전체 지도 안개/발견/목적지 클릭/카메라 따라가기/귀환 경로/먼 위치 저장 한계를 확장.
+장식용 나무는 현재 채집 대상이 아니다. 새 지역 지면은 코드로 만든 픽셀 텍스처/길이며 원화와 접합 미감은 후속 보완 대상.
+지형은 유한한 연결 월드이며 무한 생성/잠수/동굴 내부/다리·고도 시스템은 아직 구현하지 않음.
+가구 배치: 그림 미리보기 + 회전 + 녹색/붉은 유효성 표시 + 별도 확정 버튼.
+서버와 미리보기가 동일한 충돌/출입구/실내 인물/귀환 경로 검사 사용.
+집 안 파일 불러오기 시 실내 주 화면/위치/앉기·쉬기 자세 복원.
+관련: src/world-layout.ts, tests/open-world.test.ts, qa/open-world-fixtures.ts.
+최신 빌드: index-_pbcbNp-.js / index-DiQUZ83P.css.
+실행 묶음 SHA-256 index.html ad83ed5139c3103619441a06150241a514c69bae67efbd5aa395da2836227a17
+server.mjs 83378117bf85acc5095b9699c109e7dc64d7038113b9813678e9310490f5c2df
+이전 실행판: releases/backups/pre-open-world-20261004.tgz (삭제하지 않음).
+다음: 새 원화와 픽셀 지형 경계/지역별 지형·볼거리, 지도 확대·축소, 도구 전 방향/여름 자세, 자연 음질, 정원/곤충 계획 이어가기.
+
+11. 사용자 교정 반영 — 최종 스타일/크기 수정
+사용자: 기존 맵 규칙을 지키고 기존 맵처럼 확장. 캐릭터가 계속 커진다는 지적.
+원인 확인: scene.ts의 (.75+(worldY-350)/470*.3)가 확장 월드의 Y좌표에 비례해 인물/도구를 계속 확대함.
+수정: actorScale(color) 고정 비율 .95, 여름 .86 상대 비율. 몸/도구/조끼 모두 같은 함수. 카메라는 가로 폭 기준 .42~.9 배율.
+지면: 단순 사각형 픽셀 지면을 제거하고 jungle-v1을 참조해 생성한 island-terrain-extension-v1.png를 연결 렌더. 나무 배치는 고정 격자에서 불규칙 배치로 수정. 기존 해변/정글 원화 및 장애물 폴리곤 보존.
+최종 JS: index-Zv99vzEs.js, CSS: index-DiQUZ83P.css.
+검증: TypeScript 통과. 최신 지역/충돌/크기 관련 11개 검사 통과. 프로덕션/서버 빌드 통과.
+전체 검사에서는 65개 중 64개 통과, 협동 네트워크 1개는 로컬 극심한 응답 지연 중 서버 기동 시간 초과. 이전 수정본 전체64개 및 협동 검사는 통과했으나 최종판 전수 통과로 표시하지 말 것.
+최종 스타일 교정 이후 CUA 브라우저가 반복 시간 초과하여 실제 최신 화면 검수 미완료. 이전 증거 이미지들은 교정 전 버전이므로 최종 스타일 증거로 사용하지 말 것.
+다음 첫 작업: 브라우저 연결 복구 후 최종판 캠프/초원/해변/동쪽 끝/390×844에서 몸·도구 크기, 원화 접합과 충돌을 실제 확인. 연결된 확장 지형의 그림/지면 분류 대응도 점검.
+
+[2026-10-04 최종 배포 확인]
+7749 수정본 배포 완료: index-Zv99vzEs.js / index-DiQUZ83P.css.
+서비스 active 및 health 응답 확인. 운영 데이터 유지.
+서버 격리 테스트 폴더에서 전체 65개 테스트 통과(실패 0). 로컬의 협동 테스트 시간 초과는 서버 재검증에서 해소됨.
+기존 아트 방식으로 확장 배경 교체, 월드 Y 좌표에 따른 캐릭터/도구 확대 제거, 고정 상대 크기 적용.
+소스 스냅샷: /home/issacs/island100/source/snapshots/20261004-open-world-style-fix
+배포 당시 소스 103개 파일 SHA-256 검증 완료. 이 기록 추가 후 매니페스트 재생성.
+남은 검수: 브라우저 연결 시간 초과로 수정본의 최종 육안 검수 미완료. 확장 경계 이음새, 배경 길과 실제 지형 정합성, 모바일 캐릭터/도구 크기를 직접 확인할 것. 기존 스크린샷은 교정 전 자료이며 최종 화면 증거로 사용하지 말 것.
+
+12. 2026-10-05 끊김 없는 섬 지면 (미배포)
+- 원본 해변/정글 그림의 바깥 경계를 노이즈 페더로 녹이고, 확장 지면을 해안 열 + 미러 타일 + 대칭 깨기 패치로 교체.
+- 바다는 해안 그림 색을 샘플링한 순환 절차 타일 + 수심 그라데이션. 그림 길은 world-layout trails에서 그려 발소리 판정과 일치.
+- 관련: src/seamless-ground.ts, scene.ts addOriginalArt/addFrontier, tests/seamless-ground.test.ts. 70개 검사 통과.
+- 기획: REFERENCE-GAMES-PLAN-2026-10-05.txt (데이브/HHP/99 Nights 적용 P0~P2).
+- 2026-10-05 7749 배포 완료(index-BOiBR7_B.js). 스냅샷 source/snapshots/20261005-seamless-map. 이전판 backups/pre-seamless-map-20261005.tgz.
+
+13. 2026-10-05 섬 생활 1차 (동물의 숲 구성)
+- 규칙: src/island-life.ts. 렌더: src/life-view.ts. UI: main.ts museumMenu. 아이콘: scripts/make-life-art.mjs → public/art/life.
+- 곤충 6종/조개 4종/X 표시 매장물/과일나무/꽃밭 4칸/자연관(기증·감정·도감 18칸)/마일리지(업적 15·오늘의 과제 3·교환대 6)/병편지.
+- 브라우저 플레이 검증: BASE=http://127.0.0.1:7749 node qa/life-play.mjs (fixtures: npx tsx qa/life-fixtures.ts).
+  지역 스크린샷: npx tsx qa/region-fixtures.ts && node qa/browser-shots.mjs camp meadow ...
+  서버에는 ~/island100/qa-browser 에 Playwright Chromium 설치됨(테스트 전용, 게임과 무관).
+- 다음: 주민(여름) 부탁/선물, 상점 건물, 잠수, 의상, 꽃 교배, 계절 행사, 살금살금 입력.
+
+14. 2026-10-05 섬 생활 2차
+- 수영/잠수: src/island-sea.ts. 우정/매점/의상/행사: src/island-social.ts. 데이터 보정: island-life.ts LIFE_SCHEMA(필드 추가 시 증가).
+- 살금살금: 조이스틱 50% 미만 기울기 · C키 · 곤충 클릭 자동. 입력 sneak 필드(서버 setInput에서 검증).
+- 브라우저 검증 스크립트: qa/second-wave-play.mjs(fixtures: qa/second-wave-fixtures.ts), qa/coop-play.mjs(2브라우저 협동).
+- 다음: 주민 집 방문/이사, 계절 풍경, 박물관 내부, 무 주식, 친구 NPC를 캠프에 실제로 그리기.
+
+15. 2026-10-08 서버 혼자 배포 · 곤충 클릭 판정 수정
+- 현재 라이브: index-D-6Q1mMB.js (2026-10-08 20:31 KST). 소스 source/snapshots/20261008-click-target-fix = source/current = handoff/current.
+- 배포(서버 안에서 끝까지 진행되므로 SSH가 끊겨도 계속됨):
+  setsid nohup ~/island100/bin/deploy.sh <스냅샷 이름> >/dev/null 2>&1 < /dev/null &
+  ~/island100/bin/deploy-status.sh  (RUNNING / SUCCESS / FAILED / ROLLED_BACK과 로그 끝부분)
+  순서: 스냅샷 복사 → npm install → 타입 검사 → 단위 테스트(# fail 0) → 빌드 → 7750 스테이징(라이브 데이터 사본) → 브라우저 second-wave·coop·life → 라이브 백업 → 교체·재시작 → 7749 health → 라이브 life-play → current 링크 갱신.
+  교체 전 실패는 라이브를 건드리지 않고, 교체 후 실패는 방금 만든 백업으로 자동 복구한다.
+- 롤백: ~/island100/bin/rollback.sh (직전 배포의 백업, releases/backups/LAST) · rollback.sh --list · rollback.sh <백업.tgz>. 프로그램 파일만 바꾸고 data는 건드리지 않는다.
+- 클릭 판정: src/click-target.ts의 pickClickTarget 하나로 캔버스·그림·투명 버튼(.world-item) 클릭을 판정한다.
+  투명 버튼을 새로 만들 때 onclick은 this.clickHit(e,id)를 쓴다. interactWith를 직접 부르면 근처 곤충·동물 클릭을 가로챈다.
+- 브라우저 테스트에서 NPC·곤충처럼 움직이는 대상은 고정 대기 시간 대신 실제 상태(대상 표시, 위치)를 확인한 뒤 진행한다. 서버 headless는 게임 시간이 약 0.2배로 흐른다.
+- 다음 작업: 그래픽 개편 설계(섬 풍경 통일 → 화면 처리 → 캐릭터 → UI 순).
+
+16. 2026-10-09 P0 기반 (3D 전환 묶음 1)
+- 현재 라이브: index-Dyg8BPQp.js (2026-10-09 01:34 KST). 소스 source/snapshots/20261009-p0-foundation = source/current = handoff/current.
+- 혼자 하기 게임 시간은 src/clock.ts의 고정 간격 시계로 흐른다(1/30초, 프레임당 최대 5회). 프레임이 떨어져도 하루 300초가 유지된다.
+- 조작은 src/island-controller.ts의 IslandController가 맡는다. 렌더러는 키 상태(HeldKeys)와 클릭 좌표만 넘긴다.
+  canvas 클릭 → clickWorld, 그림·투명 버튼 클릭 → clickOwned, 키보드로 누른 버튼 → activate, E → pressAction, 조이스틱 → press/set/releaseJoystick.
+- 브리지: advance(realDt)가 이번 프레임에 진행할 고정 간격 횟수를 돌려준다(온라인·메뉴 중 0). 컨트롤러는 간격마다 조향한 뒤 tick(1/30초)으로 세상을 진행한다.
+  간격이 없는 프레임은 이전과 같이 min(프레임, 0.05초)로 조향한다(온라인 동작 동일).
+- 브라우저 테스트는 화면 좌표를 window.__islandDebug.project(x, y)로 얻는다(?qa에서만). 고정 배율 계산 금지.
+  second-wave 친구 단계는 김여름 창이 열릴 때까지 다가가 E를 다시 누른다(시작 위치에서 가방과 거리가 비슷함).
+- 서버 Tailscale: 2026-10-08 06:57 KST 자동 업데이트 재시작 때 노드 키 만료로 로그아웃. 복구는 계정 주인이 sudo tailscale login 후 표시된 링크를 승인.
+  공인 주소 125.176.45.19 접속은 영향 없음.
+- 다음: P1 3D 바탕 계획 → design/plans/.
+
+17. 2026-10-09 P1 3D 바탕 (3D 전환 묶음 1)
+- 현재 라이브: index-vm3MT3jN.js (2026-10-09 08:58 KST). 소스 source/snapshots/20261009-p1-3d-base = source/current = handoff/current.
+- 3D 화면: 주소에 ?render=3d. 기본은 2D. WebGL2가 없으면 2D로 남고 안내가 뜬다. 3D 파일을 못 불러오면 그 자리에서 2D로 바뀐다.
+  ?q=low는 그림자·후처리를 끈다(느린 기기·서버 검사용).
+- 구조: src/render3d/. space(좌표·카메라·클릭 계산), hits(대상별 클릭 상자 크기), look(색·재질·휘어짐·투명 처리), ground3d·water3d(지면·바다),
+  sky-light3d(하늘·빛·낮밤), flora3d(나무·바위·임시 지형지물), actors3d(하준·여름·동물 세움판, 몬스터), markers3d(모형이 없는 지점의 임시 표시),
+  input3d·overlay3d(키·조이스틱·키보드 버튼·이름표·말풍선), island3d(조립·그리기 순환). main.ts는 IslandView로 2D/3D를 고른다.
+- 클릭 규칙: 지평선 너머 대상은 제외(groundVisible). 사각형(줄기·물건·사람·곤충)이 나무 윗부분보다 먼저. 같은 종류끼리는 앞 물체, 깊이 1단위 안이면
+  클릭에 가까운 쪽. 주인공 둘레에서 투명해진 앞쪽 나무는 무시. 상자에 안 걸리면 휜 바닥 교점 → pickClickTarget.
+  키보드 버튼(.world-item)은 3D에서 키보드 전용이다. 규칙 .render-3d #ui .world-item{pointer-events:none}은 #ui button 규칙보다 우선순위가 높아야 한다.
+- 테스트: RENDER=3d node qa/<이름>.mjs로 3D 실행. 서버 headless는 1~3fps라 RENDER='3d&q=low'를 쓴다. qa/click3d-play.mjs(3D 전용 9개),
+  qa/view3d-shots.mjs(고정 9곳 + 휴대폰 2곳, 비교 이미지는 design/plans/p1/compare-shots.py).
+  스냅샷 복사에 --exclude='qa/shots*'가 있으므로 qa 스크립트 이름을 shots로 시작하지 않는다.
+- 다음: P2 모형 모음(캠프·건물·식물·리조트 장식, 절벽·웅덩이·섬 경계) 계획 → design/plans/. 실제 휴대폰에서 ?render=3d&qa의 fps 확인.
+
+18. 2026-10-09 P2a 캠프·첫 해변 v7 모형 (3D 전환 묶음 2의 첫 부분)
+- 현재 라이브: index-BSR2GU85.js (2026-10-09 12:21 KST). 소스 source/snapshots/20261009-p2-v7-look = source/current = handoff/current.
+- 3D(?render=3d)의 임시 표시와 덩어리를 모두 모형으로 바꿨다. 기본 2D, 게임 규칙·충돌·저장 데이터는 그대로다.
+- 구조(src/render3d/): paint3d(모형은 paint(색, look)로 칠하고 같은 등급끼리 재질 공유), batch3d(배치된 모형을 세계 좌표로 굽고 등급별 병합),
+  props3d·items3d(모형 함수: 원점이 바닥, 앞쪽이 +z), props-layout(대상 종류·상태별 모형과 캠프·해변 장식; VOLATILE_KINDS는 자주 바뀌는 대상),
+  terrain3d(STAND_INS 지형지물, 북쪽 경계 절벽 BORDER), props-scene3d(16칸 묶음 두 층: decor=장식·건물, targets=자주 바뀌는 대상; 캠프 조명은 상시 하나),
+  critters3d(곤충·망고), dressing3d(잔디 장식, 칸 해시로 위치 고정). space.viewWindow()로 카메라 기준 시야 창을 구해 나무 44칸·소품 36칸·장식 24칸까지 그린다.
+- 모형 추가 순서: props3d/items3d에 함수 → props-layout MODELS에 이름 → 대상이면 targetPlacements, 장식이면 decorPlacements.
+  대상 모형은 다른 대상의 충돌 영역에 들어가면 안 된다(tests/props-layout 겹침 시험). 장식은 대상·매일 바뀌는 지점에서 45px 이상 떨어뜨린다.
+- ?q=low는 그림자·후처리·잔디 장식을 끄고 나무·소품을 28칸까지만 그린다(느린 기기·서버 검사용).
+- 테스트: tests/helpers/fake-canvas.ts로 node에서 Props3D를 만든다. 비교 이미지는 design/plans/p2/compare-p2.py, 기록은 design/plans/p2/progress.md.
+- 다음: 같은 방식으로 정글·초원·고원·남쪽 해변. 실제 휴대폰에서 첫 화면 시간과 ?render=3d&qa의 fps 확인.

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "yeoreum-intro",
+    "speaker": "yeoreum",
+    "text": "하준아! 내 목소리 들려? 다행이다. 친구들도 모두 여기 있어.",
+    "url": "/audio/yeoreum-intro.mp3"
+  },
+  {
+    "id": "hajun-intro",
+    "speaker": "hajun",
+    "text": "여름아, 네가 있어서 정말 다행이야. 우리 친구들이랑 같이 방법을 찾아보자.",
+    "url": "/audio/hajun-intro.mp3"
+  },
+  {
+    "id": "yeoreum-water",
+    "speaker": "yeoreum",
+    "text": "하준아, 우리 같이 안전한 물부터 구하자. 물통의 물은 바로 마시지 말고 캠프로 가져가자!",
+    "url": "/audio/yeoreum-water.mp3"
+  },
+  {
+    "id": "yeoreum-jungle",
+    "speaker": "yeoreum",
+    "text": "정글 길을 발견했어! 안쪽 지역은 다음 모험에서 함께 탐험하자.",
+    "url": "/audio/yeoreum-jungle.mp3"
+  },
+  {
+    "id": "yeoreum-cave",
+    "speaker": "yeoreum",
+    "text": "동굴은 조명과 동행 준비가 필요해. 오늘은 입구만 기록하자.",
+    "url": "/audio/yeoreum-cave.mp3"
+  },
+  {
+    "id": "hajun-water",
+    "speaker": "hajun",
+    "text": "좋아! 물병을 찾았어. 이제 여름이랑 안전한 물을 준비하자.",
+    "url": "/audio/hajun-water.mp3"
+  }
+]

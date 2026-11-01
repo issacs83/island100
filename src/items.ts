@@ -1,0 +1,7 @@
+import type {Item} from './shared';
+import {lifeItems,lifeItemUse,type LifeItem} from './island-life';
+export const itemOrder:Item[]=['shovel','bottle','pot','rawWater','water','ration','coconut','fish','wood','fiber','rod','stone','worm','shrimp','rawFish','reefFish','woodKnife','woodSpear','bow','stoneKnife','stoneSpear','axe','pickaxe','basket','grilledReef','torch','arrow','rawMeat','cookedMeat','hide','leatherVest','ironOre',...lifeItems];
+// Island-life items use their own pixel SVG (public/art/life) instead of the painted atlas cell.
+export const lifeArtUrl=(item:Item)=>lifeItems.includes(item as LifeItem)?`/art/life/${item}.svg`:undefined;
+export function itemArt(item:Item,extra=''){const i=itemOrder.indexOf(item);const svg=lifeArtUrl(item);const style=svg?`background-image:url('${svg}');background-size:84% 84%;background-position:center`:`--ix:${i%6*20}%;--iy:${Math.floor(i/6)*25}%`;return `<span class="item-art ${extra}" data-art="${item}" aria-hidden="true" style="${style}"></span>`;}
+export const itemUse:Partial<Record<Item,string>>={...(lifeItemUse as Partial<Record<Item,string>>),ironOre:'곡괭이로 돌을 캐면 발견 · 가구 제작 재료',leatherVest:'입으면 몬스터 피해 30% 감소 · 도구와 함께 장착',rod:'입질 때 당기기',axe:'나무 베기',shovel:'모래·흙 파기',pickaxe:'돌 캐기',bow:'화살로 사냥',woodKnife:'베기 · 사냥',stoneKnife:'베기 · 사냥',woodSpear:'찌르기 · 사냥',stoneSpear:'찌르기 · 사냥',bottle:'물 채우기',pot:'끓이기 · 요리',basket:'재료 모으기',torch:'밤길 밝히기',rawWater:'캠프에서 끓이기',rawMeat:'제작대에서 익히기'};

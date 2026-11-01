@@ -1,0 +1,4 @@
+import type {World} from './shared';
+const db=()=>new Promise<IDBDatabase>((resolve,reject)=>{const r=indexedDB.open('island100',1);r.onupgradeneeded=()=>r.result.createObjectStore('saves');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+export async function saveSolo(w:World){const d=await db();await new Promise<void>((resolve,reject)=>{const t=d.transaction('saves','readwrite');t.objectStore('saves').put(w,'solo');t.oncomplete=()=>resolve();t.onerror=()=>reject(t.error);});d.close();}
+export async function loadSolo():Promise<World|undefined>{const d=await db();const value=await new Promise<World|undefined>((resolve,reject)=>{const r=d.transaction('saves').objectStore('saves').get('solo');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});d.close();return value?.version===2?value:undefined;}

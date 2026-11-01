@@ -1,0 +1,20 @@
+서버 소스·인계 기록 전송 확인
+사용자 날짜: 2026-10-04 (America/Los_Angeles)
+대상: issacs@125.176.45.19 / 게임 http://125.176.45.19:7749/
+원본 스냅샷: /home/issacs/island100/source/snapshots/20261004-home-screen-handoff
+소스 진입점: /home/issacs/island100/source/current
+인계 진입점: /home/issacs/island100/handoff/current/HANDOFF.txt
+
+초기 전송: 97개 파일, 30,211,303 bytes (소스/자산/기획/검사/검수 이미지 합계).
+초기 압축 묶음: /home/issacs/island100/source/archives/island100-source-20261004-home-screen-handoff.tgz
+압축 묶음 SHA-256: 570424d68e2a72eb71c79c212510fa17aa26b1d798d2fcf2b370f3a2af3cd100
+위 해시의 로컬/서버 일치 및 초기 97개 파일의 sha256sum 검사를 확인했다.
+이후 WORK-LOG.txt에 전송 결과를 갱신하고 이 확인서를 추가한다.
+최종 파일별 해시는 같은 디렉터리의 SOURCE-MANIFEST.sha256을 기준으로 확인한다.
+최종 묶음 보관 이름: island100-source-20261004-home-screen-handoff-verified.tgz.
+
+현재 서비스 실행판 대조
+dist/index.html SHA-256: ead9eec4da064097099527288d0f0cb58d6311adf015b39da5f3d32c8b9bcbad
+server.mjs SHA-256: ac2e6c84810cd2bcd97ae89827401005fc12a787b22b30e6b4759419a54314f0
+서비스: island100.service active, WorkingDirectory=/home/issacs/island100/releases/20261004-review。
+이번 작업은 소스/인계 저장이며 게임 실행판과 게임 데이터는 수정하지 않았다.
