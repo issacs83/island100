@@ -168,4 +168,4 @@ test('Island life survives a save file round trip',()=>{
  assert.equal(fixed.miles,0);assert.deepEqual(fixed.museum,['butterfly']);assert.equal(fixed.plots[0].stage,3);
 });
 
-test('Bug spot list covers six species',()=>{assert.equal(new Set(bugSpots.map(b=>b.species)).size,6);});
+test('Bug spot list covers ten species',()=>{assert.equal(new Set(bugSpots.map(b=>b.species)).size,10);});

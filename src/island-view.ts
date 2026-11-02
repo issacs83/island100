@@ -11,7 +11,13 @@ export interface IslandView {
   project(x: number, y: number, height?: number): {x: number; y: number};
 }
 // ?render=3d asks for the three.js view; browsers without WebGL2 stay on the 2D view.
-export const wantsRender3d = (search: string, hasWebgl2: () => boolean) => new URLSearchParams(search).get('render') === '3d' && hasWebgl2();
+export const wantsRender3d = (search: string, hasWebgl2: () => boolean) => {
+  const r = new URLSearchParams(search).get('render');
+  if (r === '2d') return false;
+  if (r === '3d') return hasWebgl2();
+  // 3D is the default look on capable devices; ?render=2d opts out.
+  return hasWebgl2();
+};
 export function webgl2Available() {
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; }
 }

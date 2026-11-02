@@ -268,6 +268,15 @@ export function lighthouse() {
   add(g, new CylinderGeometry(.09, .12, .5, 8), legs, 0, .25, 0);
   return g;
 }
+export function balloonGift() {
+  const g = new Group();
+  add(g, new SphereGeometry(.5, 14, 12), paint('#e8564a', {roughness: .35}), 0, 1.9, 0);
+  add(g, new SphereGeometry(.12, 8, 6), paint('#ffffff', {opacity: .4}), -.18, 2.08, .28);
+  add(g, new CylinderGeometry(.015, .015, .55, 6), paint('#fdf6e0'), 0, 1.4, 0);
+  add(g, new RoundedBoxGeometry(.5, .4, .5, 2, .04), paint('#e9a13c'), 0, .95, 0);
+  add(g, new BoxGeometry(.54, .1, .12), paint('#c9762a'), 0, .95, 0);
+  return g;
+}
 export function board() {
   const g = new Group(), legs = wood();
   for (const x of [-.55, .55]) add(g, new CylinderGeometry(.06, .07, 1.3, 8), legs, x, .65, 0);

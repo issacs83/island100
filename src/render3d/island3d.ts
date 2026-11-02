@@ -70,6 +70,10 @@ export class Island3D {
   private fps = 0;
   private frames = 0;
   private fpsTime = 0;
+  private elapsedSeconds = 0;
+  private slowSeconds = 0;
+  askedFallback = false;
+  onSlow?: () => void;
   private calls = 0;
   private rendered = 0;
   private speech?: {speaker: Speaker; text: string};
@@ -221,7 +225,21 @@ export class Island3D {
   private countFps(realDt: number) {
     this.frames++;
     this.fpsTime += realDt;
-    if (this.fpsTime >= 1) { this.fps = Math.round(this.frames / this.fpsTime); this.frames = 0; this.fpsTime = 0; }
+    if (this.fpsTime >= 1) {
+      this.fps = Math.round(this.frames / this.fpsTime);
+      this.frames = 0;
+      this.fpsTime = 0;
+      // Slow-device watchdog: after a warm-up minute, a very low frame rate for a while
+      // asks the host to fall back to the 2D view instead of leaving a slideshow.
+      if (this.fps > 0 && this.elapsedSeconds > 20) {
+        this.slowSeconds = this.fps < 15 ? this.slowSeconds + 1 : 0;
+        if (this.slowSeconds >= 5 && !this.askedFallback) {
+          this.askedFallback = true;
+          this.onSlow?.();
+        }
+      }
+      this.elapsedSeconds++;
+    }
   }
 
   // The focus eases toward the player (or the camp before a game starts) and snaps after loads and teleports.

@@ -9,12 +9,15 @@ export class View3D implements IslandView {
   control: IslandController;
   private island?: Island3D;
   private speech?: {speaker: Speaker; text: string};
+  // Called by the slow-device watchdog after sustained low frame rates.
+  onSlow?: () => void;
 
   constructor(private bridge: Bridge) { this.control = new IslandController(bridge); }
 
   async start(host: HTMLElement) {
     const {Island3D} = await import('./render3d/island3d');
     this.island = new Island3D(host, this.bridge, this.control);
+    this.island.onSlow = () => this.onSlow?.();
     if (this.speech) this.island.setSpeech(this.speech.speaker, this.speech.text);
   }
   goTo(x: number, y: number) { this.control.goTo(x, y); }

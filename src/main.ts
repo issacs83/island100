@@ -145,6 +145,8 @@ voice.onSpeech=(speaker,text)=>{scene.setSpeech(speaker,text);audio.duck(!!speak
 function start2d(view:IslandScene){new Phaser.Game({type:Phaser.AUTO,parent:'game',backgroundColor:'#217c88',pixelArt:true,antialias:false,scale:{mode:Phaser.Scale.RESIZE,width:window.innerWidth,height:window.innerHeight},scene:[view],input:{activePointers:3},render:{roundPixels:true,powerPreference:'low-power'}});}
 if(scene instanceof IslandScene)start2d(scene);
 else{document.body.classList.add('render-3d');(scene as View3D).start($('game')).catch(e=>{console.error(e);document.body.classList.remove('render-3d');const fallback=new IslandScene(bridge);scene=fallback;start2d(fallback);toast('3D 화면을 열지 못해 2D 화면으로 바꿨어요. 3D로 다시 보려면 새로 고침해 주세요.');});}
+// Slow-device watchdog: if the 3D view crawls, fall back to the 2D view automatically.
+const v3=scene as View3D;v3.onSlow=()=>{try{$('game').innerHTML='';}catch{}document.body.classList.remove('render-3d');const fallback=new IslandScene(bridge);scene=fallback;start2d(fallback);toast('기기가 조금 힘들어 2D 화면으로 바꿨어요. 게임은 그대로예요!');};
 if(new URLSearchParams(location.search).get('render')==='3d'&&!render3d)toast('이 브라우저는 3D 화면을 지원하지 않아 2D 화면으로 보여 드려요.');
 setInterval(updateHud,100);setInterval(()=>{if(mode==='online'&&ws?.readyState===1&&!modal){const text=JSON.stringify(pendingInput);if(text!==lastSent){ws.send(JSON.stringify({type:'input',input:pendingInput}));lastSent=text;}}},50);setInterval(()=>void save(),4000);
 welcome();

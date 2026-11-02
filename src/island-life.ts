@@ -15,12 +15,14 @@ export type LifeItem = 'bugNet' | 'wateringCan' | 'butterfly' | 'dragonfly' | 'c
   | 'conch' | 'scallop' | 'coral' | 'sandDollar' | 'fossil' | 'clay' | 'oldCoin' | 'mango' | 'flowerSeed' | 'hibiscus' | 'plumeria'
   // Second wave: diving, hybrid flower, clothes, friendship keepsakes and event prizes.
   | 'wetsuit' | 'seaUrchin' | 'seaStar' | 'octopus' | 'abalone' | 'seaCucumber' | 'pinkHibiscus'
-  | 'strawHat' | 'flowerCrown' | 'bandana' | 'tropicalShirt' | 'stripedShirt' | 'friendPhoto' | 'fishTrophy' | 'bugTrophy' | 'starFragment';
+  | 'strawHat' | 'flowerCrown' | 'bandana' | 'tropicalShirt' | 'stripedShirt' | 'friendPhoto' | 'fishTrophy' | 'bugTrophy' | 'starFragment'
+  | 'stagBeetle' | 'grandDragonfly' | 'goldBeetle' | 'glassButterfly';
 
 export const lifeItems: LifeItem[] = ['bugNet', 'wateringCan', 'butterfly', 'dragonfly', 'cicada', 'beetle', 'firefly', 'hermitCrab',
   'conch', 'scallop', 'coral', 'sandDollar', 'fossil', 'clay', 'oldCoin', 'mango', 'flowerSeed', 'hibiscus', 'plumeria',
   'wetsuit', 'seaUrchin', 'seaStar', 'octopus', 'abalone', 'seaCucumber', 'pinkHibiscus',
-  'strawHat', 'flowerCrown', 'bandana', 'tropicalShirt', 'stripedShirt', 'friendPhoto', 'fishTrophy', 'bugTrophy', 'starFragment'];
+  'strawHat', 'flowerCrown', 'bandana', 'tropicalShirt', 'stripedShirt', 'friendPhoto', 'fishTrophy', 'bugTrophy', 'starFragment',
+  'stagBeetle', 'grandDragonfly', 'goldBeetle', 'glassButterfly'];
 
 export const lifeItemNames: Record<LifeItem, string> = {
   bugNet: '곤충망', wateringCan: '물뿌리개', butterfly: '호랑나비', dragonfly: '고추잠자리', cicada: '참매미', beetle: '장수풍뎅이',
@@ -29,6 +31,7 @@ export const lifeItemNames: Record<LifeItem, string> = {
   wetsuit: '잠수복', seaUrchin: '성게', seaStar: '불가사리', octopus: '문어', abalone: '전복', seaCucumber: '해삼', pinkHibiscus: '분홍 히비스커스',
   strawHat: '밀짚모자', flowerCrown: '꽃 화관', bandana: '탐험 두건', tropicalShirt: '꽃무늬 셔츠', stripedShirt: '줄무늬 셔츠',
   friendPhoto: '여름이의 사진', fishTrophy: '낚시 대회 트로피', bugTrophy: '곤충 대회 트로피', starFragment: '별 조각',
+  stagBeetle: '사슴벌레', grandDragonfly: '왕잠자리', goldBeetle: '금풍뎅이', glassButterfly: '유리나비',
 };
 
 // Clothing slots. Hats sit on the head; shirts use the torso overlay layer (same place as the vest).
@@ -84,7 +87,7 @@ export function hash01(...parts: Array<string | number>) {
 
 // ---------- Bugs ----------
 
-export type BugSpecies = 'butterfly' | 'dragonfly' | 'cicada' | 'beetle' | 'firefly' | 'hermitCrab';
+export type BugSpecies = 'butterfly' | 'dragonfly' | 'cicada' | 'beetle' | 'firefly' | 'hermitCrab' | 'stagBeetle' | 'grandDragonfly' | 'goldBeetle' | 'glassButterfly';
 type Time = 'day' | 'night' | 'any';
 export const bugInfo: Record<BugSpecies, {time: Time; flee: number; wander: number; onTree?: boolean; habitat: string}> = {
   butterfly: {time: 'day', flee: 40, wander: 70, habitat: '꽃이 많은 초원 · 낮'},
@@ -93,6 +96,10 @@ export const bugInfo: Record<BugSpecies, {time: Time; flee: number; wander: numb
   beetle: {time: 'night', flee: 30, wander: 0, onTree: true, habitat: '나무 기둥 · 밤'},
   firefly: {time: 'night', flee: 45, wander: 55, habitat: '물가 풀숲 · 밤'},
   hermitCrab: {time: 'any', flee: 50, wander: 40, habitat: '모래 해변 · 언제나'},
+  stagBeetle: {time: 'night', flee: 32, wander: 0, onTree: true, habitat: '나무 기둥 · 밤'},
+  grandDragonfly: {time: 'day', flee: 70, wander: 110, habitat: '넓은 물가 · 낮'},
+  goldBeetle: {time: 'night', flee: 28, wander: 0, onTree: true, habitat: '깊은 숲 나무 · 밤'},
+  glassButterfly: {time: 'day', flee: 45, wander: 80, habitat: '꽃밭 근처 · 낮'},
 };
 // Running inside this radius scares every bug; walking only scares inside each bug's own flee radius.
 export const RUN_SCARE = 190;
@@ -120,6 +127,10 @@ export const bugSpots: Array<{id: string; species: BugSpecies; x: number; y: num
   {id: 'bug-hermit-1', species: 'hermitCrab', ...g(930, 760)},
   {id: 'bug-hermit-2', species: 'hermitCrab', ...g(760, 1900)},
   {id: 'bug-hermit-3', species: 'hermitCrab', ...g(760, 3000)},
+  {id: 'bug-stag-1', species: 'stagBeetle', ...treeNear(3400, 1700)},
+  {id: 'bug-grand-1', species: 'grandDragonfly', ...g(2900, 800)},
+  {id: 'bug-gold-1', species: 'goldBeetle', ...treeNear(4800, 1150)},
+  {id: 'bug-glass-1', species: 'glassButterfly', ...g(1550, 1000)},
 ];
 
 export function bugActive(species: BugSpecies, elapsed: number) {
@@ -184,7 +195,7 @@ export type MuseumCategory = 'fish' | 'bug' | 'shell' | 'fossil' | 'sea';
 export const museumCatalog: Array<{key: string; name: string; cat: MuseumCategory; item?: Item}> = [
   {key: 'rawFish', name: '작은 물고기', cat: 'fish', item: 'rawFish'},
   {key: 'reefFish', name: '산호 물고기', cat: 'fish', item: 'reefFish'},
-  ...(['butterfly', 'dragonfly', 'cicada', 'beetle', 'firefly', 'hermitCrab'] as const).map(k => ({key: k, name: lifeItemNames[k], cat: 'bug' as const, item: k as Item})),
+  ...(['butterfly', 'dragonfly', 'cicada', 'beetle', 'firefly', 'hermitCrab', 'stagBeetle', 'grandDragonfly', 'goldBeetle', 'glassButterfly'] as const).map(k => ({key: k, name: lifeItemNames[k], cat: 'bug' as const, item: k as Item})),
   ...(['conch', 'scallop', 'coral', 'sandDollar'] as const).map(k => ({key: k, name: lifeItemNames[k], cat: 'shell' as const, item: k as Item})),
   ...(['seaUrchin', 'seaStar', 'octopus', 'abalone', 'seaCucumber'] as const).map(k => ({key: k, name: lifeItemNames[k], cat: 'sea' as const, item: k as Item})),
   {key: 'ammonite', name: '암모나이트', cat: 'fossil'}, {key: 'trilobite', name: '삼엽충', cat: 'fossil'},
@@ -317,6 +328,62 @@ export function turnipSellPrice(day: number) {
   return 0;
 }
 export const turnipWeek = (day: number) => Math.floor((day - 1) / 7);
+
+// ---------- Money rock: hit it while the sparkle lasts, up to 8 times a day ----------
+
+export const MONEY_ROCK_HITS = 8, MONEY_ROCK_GAP = 4;
+export function moneyRockHit(w: World, p: Player): string {
+  const L = life(w);
+  const day = dayOf(w.elapsed);
+  if (L.moneyRock.day !== day) L.moneyRock = {day, hits: 0, lastAt: 0};
+  const rock = L.moneyRock;
+  if (rock.hits >= MONEY_ROCK_HITS) return '오늘은 바위가 다 빛을 잃었어요. 내일 다시! (하루 8번)';
+  // Hitting quickly keeps the streak alive; slow down and the counter restarts.
+  if (rock.hits > 0 && w.elapsed - rock.lastAt > MONEY_ROCK_GAP) rock.hits = 0;
+  rock.hits++;
+  rock.lastAt = w.elapsed;
+  const bells = rock.hits * 100;
+  L.bells += bells;
+  lifeEvent(w, p, 'sell');
+  p.gesture = {kind: 'mine', remaining: .9, duration: .9, item: p.equipped || 'axe', target: 'money-rock'};
+  return `콩! 벨 ${bells}개가 튀어나왔어요! (${rock.hits}/${MONEY_ROCK_HITS})${rock.hits === MONEY_ROCK_HITS ? ' 마지막 금화까지 찾았어요!' : ' 빨리 다시 두드려요!'}`;
+}
+
+// ---------- Balloon gift: one floating present a day — pop it with a weapon ----------
+
+export const balloonSpots = [
+  {x: 1000, y: 760}, {x: 1420, y: 700}, {x: 1800, y: 640}, {x: 1500, y: 900}, {x: 2200, y: 760},
+].map((p, i) => ({id: `balloon-${i}`, ...g(p.x, p.y)}));
+export function balloonToday(w: World): {x: number; y: number} | undefined {
+  const L = life(w);
+  const day = dayOf(w.elapsed);
+  if (day < 2 || L.balloon.day !== day || L.balloon.shot) return undefined;
+  const spot = balloonSpots[Math.floor(hash01('balloon', day) * balloonSpots.length)];
+  return {x: spot.x, y: spot.y - 60};
+}
+export const balloonRewards: Array<{give: Partial<Record<Item, number>>; text: string}> = [
+  {give: {flowerSeed: 3}, text: '꽃씨 3봉지'},
+  {give: {worm: 5}, text: '지렁이 미끼 5개'},
+  {give: {ration: 1}, text: '비상식량 1개'},
+  {give: {arrow: 10}, text: '화살 10개'},
+  {give: {ironOre: 2}, text: '철광석 2개'},
+];
+export function popBalloon(w: World, p: Player): string {
+  const L = life(w);
+  const day = dayOf(w.elapsed);
+  if (L.balloon.day !== day || L.balloon.shot) return '오늘의 풍선은 이미 사라졌어요.';
+  L.balloon.shot = true;
+  const reward = balloonRewards[Math.floor(hash01('balloon-gift', day) * balloonRewards.length)];
+  for (const [item, n] of Object.entries(reward.give)) giveItem(p, item as Item, n!);
+  let extra = '';
+  if (hash01('balloon-recipe', day) < 0.3) {
+    const key = unlockRandomRecipe(w, p, `balloon-${day}`);
+    if (key) extra = ` 그리고 ${recipeName(key)} 레시피도!`;
+  }
+  lifeEvent(w, p, 'message');
+  p.gesture = {kind: 'pickup', remaining: 1, duration: 1, item: Object.keys(reward.give)[0] as Item, rewards: {...reward.give}};
+  return `풍선을 격추했어요! 떨어진 상자 안에는 ${reward.text}${extra}이(가) 들어 있었어요!`;
+}
 
 // ---------- Crafting recipes, discovery and tool durability ----------
 
@@ -461,6 +528,9 @@ export type LifeState = {
   seasonDay: number;
   // Turnip market stock and the week it was bought in (rot when a later week starts).
   turnip: {count: number; week: number};
+  // Daily money-rock streak and today's balloon gift.
+  moneyRock: {day: number; hits: number; lastAt: number};
+  balloon: {day: number; shot: boolean};
 };
 
 export function emptyLife(): LifeState {
@@ -486,13 +556,15 @@ export function emptyLife(): LifeState {
     weatherDay: 0,
     seasonDay: 0,
     turnip: {count: 0, week: 0},
-    schema: 4,
+    moneyRock: {day: 0, hits: 0, lastAt: 0},
+    balloon: {day: 0, shot: false},
+    schema: 5,
   };
 }
 
 // Bump when LifeState gains fields. Older saves and rooms persisted by an older server are upgraded
 // in place by filling every missing field with its default.
-export const LIFE_SCHEMA = 4;
+export const LIFE_SCHEMA = 5;
 export function life(w: World): LifeState {
   const L = (w.life ??= emptyLife());
   if (L.schema !== LIFE_SCHEMA) upgradeLife(L);
@@ -600,6 +672,8 @@ export function stepLife(w: World, outdoors: Player[], dt: number) {
       morning.push(`🏝 ${josa(c.name, '이/가')} 이 섬에 이사를 왔어요! 캠프 근처 작은 집에서 말을 걸어 보세요.`);
     }
   }
+  // Today's balloon gift becomes available every morning (from day 2).
+  if (L.balloon.day !== day) L.balloon = {day, shot: false};
   if (morning.length) for (const p of outdoors) announce(p, morning.join('\n'));
   // Forget dig records older than yesterday so the save stays small.
   if (L.dug.length > 40) L.dug = L.dug.filter(k => Number(k.split(':')[0]) >= day - 1);
@@ -973,6 +1047,8 @@ export function restoreLife(source: unknown): LifeState {
   L.weatherDay = Math.floor(num(s.weatherDay, 0, 1e6, 0));
   L.seasonDay = Math.floor(num(s.seasonDay, 0, 1e6, 0));
   if (s.turnip && typeof s.turnip === 'object') L.turnip = {count: Math.floor(num(s.turnip.count, 0, 9999, 0)), week: Math.floor(num(s.turnip.week, 0, 1e6, 0))};
+  if (s.moneyRock && typeof s.moneyRock === 'object') L.moneyRock = {day: Math.floor(num(s.moneyRock.day, 0, 1e6, 0)), hits: Math.floor(num(s.moneyRock.hits, 0, 99, 0)), lastAt: num(s.moneyRock.lastAt, 0, 1e9, 0)};
+  if (s.balloon && typeof s.balloon === 'object') L.balloon = {day: Math.floor(num(s.balloon.day, 0, 1e6, 0)), shot: s.balloon.shot === true};
   return L;
 }
 

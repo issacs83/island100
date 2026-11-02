@@ -7,7 +7,7 @@ import type {World, Item} from './shared';
 import {itemOrder} from './items';
 import {seaSpots} from './island-sea';
 import {SHOP, starVisible} from './island-social';
-import {life, bugInfo, bugActive, shellSpots, buriedToday, dayOf, fruitTrees, gardenPlots, MUSEUM, museumCatalog, hash01} from './island-life';
+import {life, bugInfo, bugActive, shellSpots, buriedToday, dayOf, fruitTrees, gardenPlots, MUSEUM, museumCatalog, hash01, balloonToday} from './island-life';
 
 const key = (item: Item) => `item-${itemOrder.indexOf(item)}`;
 
@@ -299,6 +299,21 @@ export class LifeView {
           g.fillCircle(p.x + Math.sin(k * 1.7) * 14, p.y - 10 - u * 50, 2 + (k % 3));
         }
       }
+    }
+
+    // Daily balloon gift hovering above its spot (pop it with a weapon).
+    const bl = balloonToday(w);
+    if (bl) {
+      const bob = Math.sin(now * 2.2) * 5;
+      const box = this.sprite('balloon-gift', key('ration'), 36, bl.y + 1);
+      box.setPosition(bl.x, bl.y - 26 + bob * .4);
+      g.fillStyle(0xe8564a, 1);
+      g.fillEllipse(bl.x, bl.y - 74 + bob, 42, 52);
+      g.fillStyle(0xffffff, .35);
+      g.fillEllipse(bl.x - 8, bl.y - 88 + bob, 9, 13);
+      g.lineStyle(2, 0xfff6d8, .8);
+      g.lineBetween(bl.x, bl.y - 48 + bob, bl.x, bl.y - 12 + bob * .4);
+      used.add('balloon-gift');
     }
 
     // Shooting star across the night sky on meteor nights.

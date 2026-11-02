@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {wantsRender3d} from '../src/island-view.ts';
 import {heldKeys} from '../src/render3d/input3d.ts';
 
-test('Only ?render=3d with WebGL2 opens the 3D view', () => {
+test('3D is the default view on WebGL2 devices; ?render=2d opts out', () => {
   assert.equal(wantsRender3d('?render=3d', () => true), true);
   assert.equal(wantsRender3d('?qa&render=3d', () => true), true);
   assert.equal(wantsRender3d('?render=3d', () => false), false);
-  assert.equal(wantsRender3d('', () => true), false);
+  assert.equal(wantsRender3d('', () => true), true, '3D by default');
   assert.equal(wantsRender3d('?render=2d', () => true), false);
 });
 

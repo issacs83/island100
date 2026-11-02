@@ -121,7 +121,7 @@ test('Seasonal events: calendar, bug-off tiers, shooting-star wish',()=>{
 test('All new fixed points are reachable: shop on land, sea spots in water',()=>{
  assert.ok(canStand({x:SHOP.x,y:SHOP.y}));
  for(const s of seaSpots)assert.ok(canSwim(s),s.id);
- assert.ok(gardenPlots.length===4&&bugSpots.length===14);
+ assert.ok(gardenPlots.length===4&&bugSpots.length===18);
 });
 
 test('Old island data (first-wave rooms and saves) is upgraded instead of crashing',()=>{

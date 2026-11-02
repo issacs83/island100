@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {emptyWorld,addPlayer,step,act,worldTargets,landmarks,type World,type Player} from '../src/shared.ts';
-import {life,weatherOf,fishingWaitFactor,stepLife,dayOf,hash01,gardenPlots,unlockRandomRecipe,craftRecipes,baseRecipes,toolDurability,usesLeft,villagerCandidates,villagerHome,villagersOf,lifePointsStandable} from '../src/island-life.ts';
+import {life,weatherOf,fishingWaitFactor,stepLife,dayOf,hash01,gardenPlots,unlockRandomRecipe,craftRecipes,baseRecipes,toolDurability,usesLeft,villagerCandidates,villagerHome,villagersOf,lifePointsStandable,museumCatalog} from '../src/island-life.ts';
 import {friendNames} from '../src/island-social.ts';
 import {canStand} from '../src/terrain.ts';
 import {decodeSave,encodeSave} from '../src/save-file.ts';
@@ -174,4 +174,54 @@ test('Plaza board exists on standable ground and reports the day',()=>{
   const news=boardNews(w);
   assert.ok(news.some(n=>n.text.includes('봄')),'season line present');
   assert.ok(news.some(n=>n.text.includes('날씨')));
+});
+
+import {moneyRockHit,MONEY_ROCK_HITS,popBalloon,MONEY_ROCK_GAP,balloonToday} from '../src/island-life.ts';
+
+function standNear(p:Player,x:number,y:number){p.x=x;p.y=y+28;if(!canStand(p))p.y=y-28;}
+
+test('Money rock: 8 hits a day, fast streak raises bells, slow restarts the streak',()=>{
+  const [w,p]=setup();
+  p.x=1310;p.y=790;
+  // 첫 타격
+  assert.match(moneyRockHit(w,p),/100/);
+  // 빠르게 연속 타격 (같은 시간대)
+  assert.match(moneyRockHit(w,p),/200/);
+  w.elapsed+=MONEY_ROCK_GAP+1;
+  assert.match(moneyRockHit(w,p),/100/,'slow hit restarts the streak');
+  w.elapsed+=1;
+  for(let i=0;i<MONEY_ROCK_HITS;i++)moneyRockHit(w,p);
+  assert.match(moneyRockHit(w,p),/다 빛을 잃었어요/,'daily limit');
+  assert.ok(life(w).moneyRock.hits===MONEY_ROCK_HITS);
+});
+
+test('Balloon gift: floats from day 2, needs a weapon, drops a reward once',()=>{
+  const [w,p]=setup();
+  gotoDay(w,1);
+  assert.equal(balloonToday(w),undefined,'no balloon on day 1');
+  gotoDay(w,3);
+  step(w,.05);
+  const bl=balloonToday(w);
+  assert.ok(bl,'balloon floats from day 2+');
+  const target=worldTargets(w).find(t=>t.id==='balloon');
+  assert.ok(target,'balloon target exists');
+  // 무기 없이는 격추 불가
+  p.x=bl!.x;p.y=bl!.y+90;
+  assert.match(act(w,p.id,'interact','balloon'),/무기/);
+  p.bag.axe=1;p.equipped='axe';
+  const before=life(w).recipes.length,bagKeys=Object.keys(p.bag).length;
+  assert.match(act(w,p.id,'interact','balloon'),/겨냥/);
+  for(let i=0;i<8&&p.swing;i++)step(w,.1);
+  assert.match(p.notice||'',/풍선을 격추했어요/);
+  assert.ok(Object.keys(p.bag).length>bagKeys-1||life(w).recipes.length>before,'reward arrived');
+  assert.equal(balloonToday(w),undefined,'balloon gone after popping');
+});
+
+test('New rare bugs exist in the book and can be caught like other tree bugs',()=>{
+  const [w,p]=setup();
+  const glass=life(w).bugs.find(b=>b.species==='glassButterfly')!;
+  p.bag.bugNet=1;act(w,p.id,'equip','bugNet');finish(w,p);
+  standNear(p,glass.x,glass.y);
+  assert.match(act(w,p.id,'interact',glass.id),/잡았다/);
+  assert.ok(museumCatalog.some(e=>e.key==='stagBeetle'),'rare bugs are in the museum book');
 });
