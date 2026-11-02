@@ -258,6 +258,15 @@ export function workbench() {
   add(g, new CylinderGeometry(.02, .02, .32, 6), legs, .35, .87, .12).rotation.x = Math.PI / 2;
   return g;
 }
+export function board() {
+  const g = new Group(), legs = wood();
+  for (const x of [-.55, .55]) add(g, new CylinderGeometry(.06, .07, 1.3, 8), legs, x, .65, 0);
+  add(g, new RoundedBoxGeometry(1.5, .85, .1, 2, .04), paint('#b98a52', {map: 'plank'}), 0, 1.05, 0);
+  add(g, new BoxGeometry(1.6, .09, .14), paint('#e86a3a'), 0, 1.52, 0);
+  add(g, new BoxGeometry(.5, .38, .02), paint('#fdf8e6'), -.32, 1.05, .07).rotation.z = .04;
+  add(g, new BoxGeometry(.5, .38, .02), paint('#fdf8e6'), .32, 1.03, .07).rotation.z = -.05;
+  return g;
+}
 export function stall() {
   const g = new Group(), post = wood();
   add(g, new RoundedBoxGeometry(2.2, .9, .7, 2, .05), paint('#ffffff', {map: 'plank'}), 0, .45, .2);

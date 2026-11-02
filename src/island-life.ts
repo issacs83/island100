@@ -176,6 +176,9 @@ export const gardenPlots = [{x: 1395, y: 805}, {x: 1450, y: 805}, {x: 1505, y: 8
 export const GROW_SECONDS = 40;
 
 export const MUSEUM = {id: 'museum', x: 1612, y: 668};
+// Plaza bulletin board between the camp and the museum: today's season, weather, event, turnip prices
+// and neighbour news in one read (the news text itself is assembled in island-social).
+export const BOARD = {id: 'plaza-board', x: 1420, y: 560};
 
 export type MuseumCategory = 'fish' | 'bug' | 'shell' | 'fossil' | 'sea';
 export const museumCatalog: Array<{key: string; name: string; cat: MuseumCategory; item?: Item}> = [
@@ -277,6 +280,43 @@ export function fishingWaitFactor(day: number) {
   const w = weatherOf(day);
   return w === 'storm' ? 0.5 : w === 'rain' ? 0.6 : 1;
 }
+
+// ---------- Seasons: four quarters across the 100-day island year ----------
+
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+export const seasonNames: Record<Season, {name: string; icon: string; hello: string}> = {
+  spring: {name: '봄', icon: '🌸', hello: '🌸 봄이 찾아왔어요! 꽃 피는 계절이에요.'},
+  summer: {name: '여름', icon: '🌊', hello: '🌊 여름이에요! 바다가 반짝여요.'},
+  autumn: {name: '가을', icon: '🍁', hello: '🍁 가을이 왔어요! 낙엽이 색을 낼 거예요.'},
+  winter: {name: '겨울', icon: '❄️', hello: '❄️ 겨울이에요! 눈이 내리는 섬이 돼요.'},
+};
+// Days 1-25 spring, 26-50 summer, 51-75 autumn, 76-100 winter (the 100-day arc is one island year).
+export function seasonOf(day: number): Season {
+  return (['spring', 'summer', 'autumn', 'winter'] as Season[])[Math.max(0, Math.floor((day - 1) / 25)) % 4];
+}
+// Gardens grow slower in the cold (our own design value).
+export function growSecondsFor(day: number) {
+  return GROW_SECONDS * (seasonOf(day) === 'winter' ? 1.5 : 1);
+}
+
+// ---------- Turnip market: buy once a week, sell through the week, rot on Monday ----------
+
+// Turnips arrive on days 8, 15, 22 … (day % 7 === 1, never on arrival day 1).
+export function isTurnipDay(day: number) {
+  return day > 1 && day % 7 === 1;
+}
+export function turnipBuyPrice(day: number) {
+  return 90 + Math.floor(hash01('turnip-buy', Math.floor((day - 1) / 7)) * 21);
+}
+// Weekday selling price: usually 60-140 bells, with an occasional spike to 250-600.
+export function turnipSellPrice(day: number) {
+  if (!isTurnipDay(day) && day % 7 !== 1 && day > 1) {
+    if (hash01('turnip-spike', day) < 0.22) return 250 + Math.floor(hash01('turnip-spike2', day) * 351);
+    return 60 + Math.floor(hash01('turnip-sell', day) * 81);
+  }
+  return 0;
+}
+export const turnipWeek = (day: number) => Math.floor((day - 1) / 7);
 
 // ---------- Crafting recipes, discovery and tool durability ----------
 
@@ -417,6 +457,10 @@ export type LifeState = {
   villagers: Villager[];
   // Last day the morning weather was announced.
   weatherDay: number;
+  // Last day a season change was announced.
+  seasonDay: number;
+  // Turnip market stock and the week it was bought in (rot when a later week starts).
+  turnip: {count: number; week: number};
 };
 
 export function emptyLife(): LifeState {
@@ -440,13 +484,15 @@ export function emptyLife(): LifeState {
     recipes: [...baseRecipes],
     villagers: [],
     weatherDay: 0,
-    schema: 3,
+    seasonDay: 0,
+    turnip: {count: 0, week: 0},
+    schema: 4,
   };
 }
 
 // Bump when LifeState gains fields. Older saves and rooms persisted by an older server are upgraded
 // in place by filling every missing field with its default.
-export const LIFE_SCHEMA = 3;
+export const LIFE_SCHEMA = 4;
 export function life(w: World): LifeState {
   const L = (w.life ??= emptyLife());
   if (L.schema !== LIFE_SCHEMA) upgradeLife(L);
@@ -520,11 +566,24 @@ export function stepLife(w: World, outdoors: Player[], dt: number) {
   const day = dayOf(w.elapsed);
   // New day: fresh daily tasks measured from today's starting stats.
   if (L.daily.day !== day) L.daily = {day, base: {...L.stats}, done: []};
-  // Morning weather: announce storms and rain once per day; rain waters the garden by itself.
+  // Morning news bundle: weather, season, rotting turnips and new neighbours announce together
+  // so no message overwrites another.
+  const morning: string[] = [];
   const weather = weatherOf(day);
   if (L.weatherDay !== day) {
     L.weatherDay = day;
-    if (weather === 'rain' || weather === 'storm') for (const p of outdoors) announce(p, weather === 'storm' ? '⛈ 오늘은 폭풍우! 밤에는 꼭 캠프 불빛 곁에 있어요.' : '🌧 아침부터 비가 와요. 꽃밭에 물을 줄 필요가 없어요!');
+    if (weather === 'rain' || weather === 'storm') morning.push(weather === 'storm' ? '⛈ 오늘은 폭풍우! 밤에는 꼭 캠프 불빛 곁에 있어요.' : '🌧 아침부터 비가 와요. 꽃밭에 물을 줄 필요가 없어요!');
+  }
+  // Season change greeting on the first morning of each quarter of the 100-day year.
+  const season = seasonOf(day);
+  if (L.seasonDay !== day && (day - 1) % 25 === 0) {
+    L.seasonDay = day;
+    morning.push(seasonNames[season].hello);
+  }
+  // Turnips bought last week rot on the new week's first morning.
+  if (L.turnip.count > 0 && turnipWeek(day) > L.turnip.week) {
+    L.turnip = {count: 0, week: turnipWeek(day)};
+    morning.push('😖 지난주 무가 상했어요… 이번 주엔 일찍 팔아요!');
   }
   if (weather === 'rain' || weather === 'storm') {
     L.plots.forEach(plot => {
@@ -538,9 +597,10 @@ export function stepLife(w: World, outdoors: Player[], dt: number) {
   for (const c of villagerCandidates) {
     if (day >= c.day && !L.villagers.some(v => v.id === c.id)) {
       L.villagers.push({id: c.id, name: c.name, species: c.species, arrivedDay: day});
-      for (const p of outdoors) announce(p, `🏝 ${josa(c.name, '이/가')} 이 섬에 이사를 왔어요! 캠프 근처 작은 집에서 말을 걸어 보세요.`);
+      morning.push(`🏝 ${josa(c.name, '이/가')} 이 섬에 이사를 왔어요! 캠프 근처 작은 집에서 말을 걸어 보세요.`);
     }
   }
+  if (morning.length) for (const p of outdoors) announce(p, morning.join('\n'));
   // Forget dig records older than yesterday so the save stays small.
   if (L.dug.length > 40) L.dug = L.dug.filter(k => Number(k.split(':')[0]) >= day - 1);
 
@@ -593,7 +653,7 @@ export function stepLife(w: World, outdoors: Player[], dt: number) {
   }
 
   L.plots.forEach(plot => {
-    if (plot.stage >= 0 && plot.stage < 3 && plot.wet && w.elapsed - plot.stageAt >= GROW_SECONDS) {
+    if (plot.stage >= 0 && plot.stage < 3 && plot.wet && w.elapsed - plot.stageAt >= growSecondsFor(day)) {
       plot.stage++;
       plot.wet = false;
       plot.stageAt = w.elapsed;
@@ -634,7 +694,8 @@ export function lifeTargets(w?: World): Landmark[] {
   if (!w) return [{id: MUSEUM.id, name: '섬 자연관 · 마일리지 교환대', x: MUSEUM.x, y: MUSEUM.y, kind: 'museum'}];
   const L = life(w);
   const day = dayOf(w.elapsed);
-  const out: Landmark[] = [{id: MUSEUM.id, name: '섬 자연관 · 마일리지 교환대', x: MUSEUM.x, y: MUSEUM.y, kind: 'museum'}];
+  const out: Landmark[] = [{id: MUSEUM.id, name: '섬 자연관 · 마일리지 교환대', x: MUSEUM.x, y: MUSEUM.y, kind: 'museum'},
+    {id: BOARD.id, name: '광장 게시판 · 오늘의 소식', x: BOARD.x, y: BOARD.y, kind: 'board'}];
   for (const b of L.bugs) if (b.state === 'idle' && bugActive(b.species, w.elapsed)) out.push({id: b.id, name: lifeItemNames[b.species], x: b.x, y: b.y, kind: 'bug'});
   for (const s of shellSpots) {
     const item = L.shells[s.id]?.item;
@@ -774,7 +835,7 @@ function interactInner(w: World, p: Player, l: Landmark): string | undefined {
         return `${josa(lifeItemNames[flower], '을/를')} 땄어요! 씨앗 1개도 받았어요.`;
       }
       if (p.equipped !== 'wateringCan') return `새싹 ${plot.stage + 1}/3 단계 · 물뿌리개를 들고 물을 주세요.`;
-      if (plot.wet) return `흙이 촉촉해요. ${Math.max(1, Math.ceil(GROW_SECONDS - (w.elapsed - plot.stageAt)))}초 뒤 자라요.`;
+      if (plot.wet) return `흙이 촉촉해요. ${Math.max(1, Math.ceil(growSecondsFor(day) - (w.elapsed - plot.stageAt)))}초 뒤 자라요.`;
       plot.wet = true;
       plot.stageAt = w.elapsed;
       p.face = gardenPlots[i].x < p.x ? -1 : 1;
@@ -793,6 +854,8 @@ function interactInner(w: World, p: Player, l: Landmark): string | undefined {
     }
     case 'museum':
       return '자연관: 기증, 도감, 마일리지 과제와 교환대를 이용할 수 있어요.';
+    case 'board':
+      return '광장 게시판: 화면을 누르거나 친구 버튼 옆에서 오늘의 소식을 읽어요.';
   }
   return undefined;
 }
@@ -908,6 +971,8 @@ export function restoreLife(source: unknown): LifeState {
     if (c && !L.villagers.some(x => x.id === c.id)) L.villagers.push({id: c.id, name: c.name, species: c.species, arrivedDay: Math.floor(num(v.arrivedDay, 1, 1e6, c.day))});
   }
   L.weatherDay = Math.floor(num(s.weatherDay, 0, 1e6, 0));
+  L.seasonDay = Math.floor(num(s.seasonDay, 0, 1e6, 0));
+  if (s.turnip && typeof s.turnip === 'object') L.turnip = {count: Math.floor(num(s.turnip.count, 0, 9999, 0)), week: Math.floor(num(s.turnip.week, 0, 1e6, 0))};
   return L;
 }
 

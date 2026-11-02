@@ -124,3 +124,17 @@ button{border-radius:10px}
 #toast{border-radius:999px!important}
 .wish-button{border-radius:999px!important}
 .held-tool{border-radius:999px!important}
+
+/* v2: seasons overlay + plaza board news */
+#season-layer{position:fixed;inset:0;pointer-events:none;z-index:1;display:none}
+#season-layer[data-s="spring"]{display:block;background-image:radial-gradient(circle,#ffc9dd88 2px,transparent 2.6px),radial-gradient(circle,#ffe1ec99 2px,transparent 2.6px);background-size:120px 120px,180px 180px;animation:season-fall 9s linear infinite}
+#season-layer[data-s="autumn"]{display:block;background-image:radial-gradient(circle,#e8954488 2.4px,transparent 3px),radial-gradient(circle,#c96b2c88 2px,transparent 2.6px);background-size:150px 150px,210px 210px;animation:season-fall 7s linear infinite}
+#season-layer[data-s="winter"]{display:block;background-image:radial-gradient(circle,#ffffffcc 2.2px,transparent 2.8px),radial-gradient(circle,#eaf4ffaa 1.8px,transparent 2.4px);background-size:130px 130px,190px 190px;animation:season-fall 11s linear infinite}
+@keyframes season-fall{to{background-position:0 600px,60px 600px}}
+#season-chip{font-size:13px;opacity:.95;min-width:26px;text-align:center}
+.board-news{display:flex;flex-direction:column;gap:8px;margin:6px 0 10px}
+.news-row{display:flex;align-items:center;gap:12px;background:#f2ecd6;border:1px solid #cbbd9477;border-radius:12px;padding:10px 14px}
+.news-icon{font-size:22px}
+.news-row p{margin:0;font-size:13.5px;color:#3b2f22}
+.muted-card{opacity:.55;cursor:default}
+#toast{white-space:pre-line}

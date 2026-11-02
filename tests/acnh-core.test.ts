@@ -127,3 +127,51 @@ test('Villagers and recipes survive the save file round-trip',()=>{
   assert.equal(r.players.solo.toolUse?.shovel,7);
   assert.equal(Object.keys(life(r).recipes).length>0,true);
 });
+
+import {seasonOf,seasonNames,growSecondsFor,GROW_SECONDS,isTurnipDay,turnipBuyPrice,turnipSellPrice,turnipWeek,BOARD} from '../src/island-life.ts';
+import {boardNews} from '../src/island-social.ts';
+
+test('Seasons: four quarters of the 100-day year, slow gardens in winter',()=>{
+  assert.equal(seasonOf(1),'spring');assert.equal(seasonOf(25),'spring');
+  assert.equal(seasonOf(26),'summer');assert.equal(seasonOf(51),'autumn');assert.equal(seasonOf(76),'winter');
+  assert.equal(growSecondsFor(10),GROW_SECONDS);
+  assert.equal(growSecondsFor(80),GROW_SECONDS*1.5,'winter gardens grow slower');
+  const [w,p]=setup();gotoDay(w,26);step(w,.05);
+  assert.match(p.notice||'',/여름/,'season change is announced in the morning');
+});
+
+test('Turnip market: Sunday stock, weekday prices, buy and sell at the shop',()=>{
+  assert.ok(isTurnipDay(8)&&isTurnipDay(15));assert.ok(!isTurnipDay(1)&&!isTurnipDay(7));
+  for(let day=8;day<=29;day+=7)assert.ok(turnipBuyPrice(day)>=90&&turnipBuyPrice(day)<=110,`buy price day ${day}`);
+  for(let day=9;day<14;day++){const price=turnipSellPrice(day);assert.ok(price>=60&&(price<=140||price>=250),`sell price day ${day}: ${price}`);}
+  assert.equal(turnipSellPrice(8),0,'no selling on stock day');
+  const [w,p]=setup();
+  gotoDay(w,8);
+  p.x=1180;p.y=560;life(w).bells=2000;
+  assert.match(act(w,p.id,'shop-buy','turnip'),/무 5개/);
+  assert.equal(life(w).turnip.count,5);
+  assert.ok(life(w).bells<2000);
+  gotoDay(w,10);step(w,.05);
+  const price=turnipSellPrice(10);
+  assert.match(act(w,p.id,'shop-sell','turnip'),/팔았어요/);
+  assert.equal(life(w).turnip.count,0);
+  assert.equal(life(w).bells,2000-turnipBuyPrice(8)*5+price*5);
+});
+
+test('Turnips rot when a new week starts',()=>{
+  const [w,p]=setup();
+  life(w).turnip={count:3,week:turnipWeek(8)};
+  gotoDay(w,15);step(w,.05);
+  assert.equal(life(w).turnip.count,0);
+  assert.match(p.notice||'',/상했어요/);
+});
+
+test('Plaza board exists on standable ground and reports the day',()=>{
+  assert.equal(lifePointsStandable().length,0,'board and villager homes standable');
+  const [w,p]=setup();
+  const t=worldTargets(w).find(t=>t.id===BOARD.id);
+  assert.ok(t,'board landmark in targets');
+  const news=boardNews(w);
+  assert.ok(news.some(n=>n.text.includes('봄')),'season line present');
+  assert.ok(news.some(n=>n.text.includes('날씨')));
+});

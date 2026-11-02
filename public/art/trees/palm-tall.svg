@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 280" width="220" height="280">
+  <!-- 코코넛 야자나무 · 오리지널 코지 스타일 -->
+  <g stroke="#6b5138" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 104 272 Q 118 200 108 130 Q 104 104 118 88" fill="none" stroke="#8a5a34" stroke-width="22"/>
+    <path d="M 104 258 Q 114 208 108 150" fill="none" stroke="#a5713f" stroke-width="8" stroke-linecap="round"/>
+    <!-- fronds -->
+    <path d="M 118 92 Q 150 52 192 62 Q 158 78 132 100 Z" fill="#5f9e4a"/>
+    <path d="M 118 90 Q 90 44 44 50 Q 82 74 106 100 Z" fill="#5f9e4a"/>
+    <path d="M 116 94 Q 152 96 172 128 Q 138 118 112 106 Z" fill="#6fb257"/>
+    <path d="M 116 94 Q 78 100 56 132 Q 88 120 112 106 Z" fill="#6fb257"/>
+    <path d="M 114 92 Q 108 52 126 30 Q 134 66 122 94 Z" fill="#7cc162"/>
+    <!-- coconuts -->
+    <circle cx="104" cy="102" r="12" fill="#7a5230"/>
+    <circle cx="128" cy="106" r="12" fill="#7a5230"/>
+    <circle cx="101" cy="99" r="3.5" fill="#9a7950" stroke="none"/>
+  </g>
+</svg>

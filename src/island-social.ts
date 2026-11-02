@@ -4,7 +4,7 @@
 // shooting-star night).
 
 import type {World, Player, Landmark, Item} from './shared';
-import {josa, withRewards, setLifeEventHook, life, lifeEvent, lifeItemNames, hats, shirts, hash01, dayOf, hourOf, type LifeItem, type Friendship, villagersOf, villagerHome, unlockRandomRecipe, recipeName} from './island-life';
+import {josa, withRewards, setLifeEventHook, life, lifeEvent, lifeItemNames, hats, shirts, hash01, dayOf, hourOf, type LifeItem, type Friendship, villagersOf, villagerHome, unlockRandomRecipe, recipeName, seasonOf, seasonNames, weatherOf, weatherNames, isTurnipDay, turnipBuyPrice, turnipSellPrice, turnipWeek} from './island-life';
 
 const YEOREUM = '김여름';
 export const SHOP = {id: 'shop', x: 1180, y: 492};
@@ -197,8 +197,20 @@ export const shopStock: Array<{id: string; label: string; price: number; give: P
 ];
 function shopAction(w: World, p: Player, action: string, arg: unknown): string {
   const L = life(w);
+  const day = dayOf(w.elapsed);
   if (Math.hypot(p.x - SHOP.x, p.y - SHOP.y) > 200) return '섬 매점 가까이에서 이용해요.';
   if (action === 'shop-sell') {
+    // Turnips sell at the day's market price and rot once a new week starts.
+    if (arg === 'turnip') {
+      if (!L.turnip.count) return '팔 무가 없어요. 일요일마다 매점에서 사요.';
+      const price = turnipSellPrice(day);
+      if (price <= 0) return '오늘은 무를 사는 날이에요. 팔 수 있는 날은 내일부터!';
+      const n = L.turnip.count;
+      L.turnip = {count: 0, week: turnipWeek(day)};
+      L.bells += price * n;
+      lifeEvent(w, p, 'sell');
+      return `무 ${n}개를 개당 ${price}벨, 총 ${price * n}벨에 팔았어요!${price >= 250 ? ' 대박이에요!' : ''}`;
+    }
     const o = (arg && typeof arg === 'object' ? arg : {item: arg}) as {item?: unknown; all?: unknown};
     const item = o.item as Item;
     const price = sellPrices[item];
@@ -208,6 +220,17 @@ function shopAction(w: World, p: Player, action: string, arg: unknown): string {
     L.bells += price * n;
     lifeEvent(w, p, 'sell');
     return `${(lifeItemNames as Record<string, string>)[item] || item} ${n}개를 ${price * n}벨에 팔았어요.`;
+  }
+  // Turnips are only stocked on turnip day, in bundles of five.
+  if (arg === 'turnip') {
+    if (!isTurnipDay(day)) return '무는 일요일마다 들어와요. 게시판에서 장사 날을 확인해요.';
+    const price = turnipBuyPrice(day) * 5;
+    if (L.bells < price) return `${price - L.bells}벨이 부족해요.`;
+    const week = turnipWeek(day);
+    if (L.turnip.count && L.turnip.week !== week) L.turnip = {count: 0, week};
+    L.bells -= price;
+    L.turnip = {count: L.turnip.count + 5, week};
+    return `무 5개를 ${price}벨에 샀어요! 이번 주 안에 팔아요. (총 ${L.turnip.count}개)`;
   }
   const offer = shopStock.find(o => o.id === arg);
   if (!offer) return '살 물건을 골라요.';
@@ -306,6 +329,28 @@ export function stepSocial(w: World, players: Player[]) {
       announce(p, `📅 ${ev.intro}`);
     }
   }
+}
+
+// ---------- Plaza bulletin board ----------
+
+// One friendly summary of today's island: season, weather, event, turnip market and neighbours.
+export function boardNews(w: World): Array<{icon: string; text: string}> {
+  const day = dayOf(w.elapsed);
+  const season = seasonOf(day), weather = weatherOf(day);
+  const ev = eventOn(day);
+  const news = [
+    {icon: seasonNames[season].icon, text: `오늘의 계절: ${seasonNames[season].name}`},
+    {icon: weatherNames[weather].icon, text: `날씨: ${weatherNames[weather].name}${weather === 'rain' || weather === 'storm' ? ' · 꽃밭에 물을 줄 필요 없어요' : ''}`},
+  ];
+  if (ev) news.push({icon: '📅', text: ev.intro});
+  if (isTurnipDay(day)) news.push({icon: '🥬', text: `오늘은 무 장사하는 날! 매점에서 무 5개 ${turnipBuyPrice(day)}벨에 구매`});
+  else if (turnipSellPrice(day) > 0) news.push({icon: '🥬', text: `무 판매가: 개당 ${turnipSellPrice(day)}벨${turnipSellPrice(day) >= 250 ? ' · 대박 시세!' : ''}`});
+  const villagers = villagersOf(w);
+  if (villagers.length) news.push({icon: '🏝', text: `섬 이웃: ${villagers.map(v => v.name).join(', ')}`});
+  else news.push({icon: '🏝', text: '조만간 새로운 이웃이 이사를 올 거예요.'});
+  const L = life(w);
+  if (L.turnip.count > 0) news.push({icon: '📦', text: `보유 무: ${L.turnip.count}개 (구매가 ${turnipBuyPrice(L.turnip.week * 7 + 1)}벨)`});
+  return news;
 }
 
 // ---------- Targets ----------
