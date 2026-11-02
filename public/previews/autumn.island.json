@@ -1,0 +1,581 @@
+{
+  "format": "island100-save",
+  "version": 1,
+  "savedAt": "2026-11-02T17:44:19.305Z",
+  "playerId": "solo",
+  "world": {
+    "version": 2,
+    "code": "PREVIEW",
+    "elapsed": 15008.600000000002,
+    "phase": 4,
+    "players": {
+      "solo": {
+        "id": "solo",
+        "name": "박하준",
+        "color": 0,
+        "x": 930,
+        "y": 610,
+        "hp": 100,
+        "water": 67.98500000000001,
+        "food": 71.98919999999998,
+        "stamina": 100,
+        "bag": {
+          "shovel": 1,
+          "rod": 1,
+          "axe": 1,
+          "bugNet": 1,
+          "wateringCan": 1,
+          "bottle": 1,
+          "pot": 1,
+          "torch": 1,
+          "wood": 20,
+          "stone": 12,
+          "fiber": 12,
+          "worm": 5,
+          "flowerSeed": 3,
+          "mango": 3,
+          "coconut": 2,
+          "ration": 2,
+          "water": 2
+        },
+        "looted": true,
+        "quiz": true,
+        "online": true,
+        "ready": true,
+        "input": {
+          "x": 0,
+          "y": 0,
+          "run": false
+        },
+        "face": 1,
+        "walk": 0,
+        "equipped": "shovel",
+        "survey": "23,15",
+        "moving": false,
+        "blocked": false,
+        "notice": "🍁 가을이 왔어요! 낙엽이 색을 낼 거예요.\n🏝 토순이가 이 섬에 이사를 왔어요! 캠프 근처 작은 집에서 말을 걸어 보세요.\n🏝 다롱이가 이 섬에 이사를 왔어요! 캠프 근처 작은 집에서 말을 걸어 보세요.\n🏝 거북박사가 이 섬에 이사를 왔어요! 캠프 근처 작은 집에서 말을 걸어 보세요.",
+        "noticeSeq": 1
+      }
+    },
+    "friends": [],
+    "explored": [
+      "8,3",
+      "9,3",
+      "10,3",
+      "11,3",
+      "12,3",
+      "8,4",
+      "9,4",
+      "10,4",
+      "11,4",
+      "12,4",
+      "8,5",
+      "9,5",
+      "10,5",
+      "11,5",
+      "12,5",
+      "8,6",
+      "9,6",
+      "10,6",
+      "11,6",
+      "12,6",
+      "8,7",
+      "9,7",
+      "10,7",
+      "11,7",
+      "12,7",
+      "7,3",
+      "6,4",
+      "7,4",
+      "6,5",
+      "7,5",
+      "6,6",
+      "7,6"
+    ],
+    "animals": [
+      {
+        "id": "rabbit-1",
+        "species": "rabbit",
+        "x": 2401.2179393164565,
+        "y": 629.9394436440729,
+        "hp": 2,
+        "maxHp": 2,
+        "homeX": 2400,
+        "homeY": 630,
+        "face": 1,
+        "moving": true,
+        "respawnAt": 0
+      },
+      {
+        "id": "rabbit-2",
+        "species": "rabbit",
+        "x": 1700,
+        "y": 690,
+        "hp": 2,
+        "maxHp": 2,
+        "homeX": 1700,
+        "homeY": 690,
+        "face": 1,
+        "moving": false,
+        "respawnAt": 0
+      },
+      {
+        "id": "boar-1",
+        "species": "boar",
+        "x": 2926.845731504435,
+        "y": 528.0246517024989,
+        "hp": 4,
+        "maxHp": 4,
+        "homeX": 2920,
+        "homeY": 530,
+        "face": 1,
+        "moving": true,
+        "respawnAt": 0
+      },
+      {
+        "id": "frontier-animal-0",
+        "species": "rabbit",
+        "x": 2200,
+        "y": 1600,
+        "hp": 2,
+        "maxHp": 2,
+        "homeX": 2200,
+        "homeY": 1600,
+        "face": 1,
+        "moving": false,
+        "respawnAt": 0
+      },
+      {
+        "id": "frontier-animal-1",
+        "species": "boar",
+        "x": 3508,
+        "y": 1600,
+        "hp": 4,
+        "maxHp": 4,
+        "homeX": 3500,
+        "homeY": 1600,
+        "face": 1,
+        "moving": false,
+        "respawnAt": 0
+      },
+      {
+        "id": "frontier-animal-2",
+        "species": "rabbit",
+        "x": 4800,
+        "y": 1600,
+        "hp": 2,
+        "maxHp": 2,
+        "homeX": 4800,
+        "homeY": 1600,
+        "face": 1,
+        "moving": false,
+        "respawnAt": 0
+      },
+      {
+        "id": "frontier-animal-3",
+        "species": "boar",
+        "x": 2201.315818110548,
+        "y": 2901.824833754029,
+        "hp": 4,
+        "maxHp": 4,
+        "homeX": 2200,
+        "homeY": 2900,
+        "face": -1,
+        "moving": false,
+        "respawnAt": 0
+      },
+      {
+        "id": "frontier-animal-4",
+        "species": "rabbit",
+        "x": 3499.653790851232,
+        "y": 2901.8162628960895,
+        "hp": 2,
+        "maxHp": 2,
+        "homeX": 3500,
+        "homeY": 2900,
+        "face": -1,
+        "moving": false,
+        "respawnAt": 0
+      },
+      {
+        "id": "frontier-animal-5",
+        "species": "boar",
+        "x": 4801.996472240425,
+        "y": 2898.738596287629,
+        "hp": 4,
+        "maxHp": 4,
+        "homeX": 4800,
+        "homeY": 2900,
+        "face": -1,
+        "moving": false,
+        "respawnAt": 0
+      }
+    ],
+    "life": {
+      "bugs": [
+        {
+          "id": "bug-butterfly-1",
+          "species": "butterfly",
+          "x": 2312.39270442056,
+          "y": 1729.0234348200283,
+          "homeX": 2380,
+          "homeY": 1760,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": 1
+        },
+        {
+          "id": "bug-butterfly-2",
+          "species": "butterfly",
+          "x": 2629.5123482753474,
+          "y": 3122.5848497650654,
+          "homeX": 2560,
+          "homeY": 3150,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": -1
+        },
+        {
+          "id": "bug-butterfly-3",
+          "species": "butterfly",
+          "x": 1519.3408016915748,
+          "y": 896.5272427348082,
+          "homeX": 1521.162327302958,
+          "homeY": 909.5726265715023,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": -1
+        },
+        {
+          "id": "bug-dragonfly-1",
+          "species": "dragonfly",
+          "x": 2348.7037054314437,
+          "y": 640.1713290881492,
+          "homeX": 2300,
+          "homeY": 600,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": -1
+        },
+        {
+          "id": "bug-dragonfly-2",
+          "species": "dragonfly",
+          "x": 1060.4100729085176,
+          "y": 1391.5133530403575,
+          "homeX": 1150,
+          "homeY": 1420,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": 1
+        },
+        {
+          "id": "bug-cicada-1",
+          "species": "cicada",
+          "x": 3990.2435534997494,
+          "y": 2182.0017129847984,
+          "homeX": 3990.2435534997494,
+          "homeY": 2182.0017129847984,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": 1
+        },
+        {
+          "id": "bug-cicada-2",
+          "species": "cicada",
+          "x": 2301.184037576604,
+          "y": 1113.5417573086452,
+          "homeX": 2301.184037576604,
+          "homeY": 1113.5417573086452,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": 1
+        },
+        {
+          "id": "bug-beetle-1",
+          "species": "beetle",
+          "x": 4180.341192695778,
+          "y": 2625.9511705509576,
+          "homeX": 4180.341192695778,
+          "homeY": 2625.9511705509576,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": 1
+        },
+        {
+          "id": "bug-beetle-2",
+          "species": "beetle",
+          "x": 2524.8625713968067,
+          "y": 1576.5756605025817,
+          "homeX": 2524.8625713968067,
+          "homeY": 1576.5756605025817,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": 1
+        },
+        {
+          "id": "bug-firefly-1",
+          "species": "firefly",
+          "x": 2380,
+          "y": 640,
+          "homeX": 2380,
+          "homeY": 640,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": 1
+        },
+        {
+          "id": "bug-firefly-2",
+          "species": "firefly",
+          "x": 2450,
+          "y": 3300,
+          "homeX": 2450,
+          "homeY": 3300,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": 1
+        },
+        {
+          "id": "bug-hermit-1",
+          "species": "hermitCrab",
+          "x": 947.116261323265,
+          "y": 752.479163662517,
+          "homeX": 930,
+          "homeY": 760,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": -1
+        },
+        {
+          "id": "bug-hermit-2",
+          "species": "hermitCrab",
+          "x": 737.8692696432258,
+          "y": 1895.9872397083918,
+          "homeX": 760,
+          "homeY": 1900,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": 1
+        },
+        {
+          "id": "bug-hermit-3",
+          "species": "hermitCrab",
+          "x": 747.5233195920262,
+          "y": 3007.4228382389542,
+          "homeX": 760,
+          "homeY": 3000,
+          "state": "idle",
+          "respawnAt": 0,
+          "face": -1
+        }
+      ],
+      "shells": {
+        "shell-0": {
+          "item": "scallop",
+          "readyAt": 0
+        },
+        "shell-1": {
+          "item": "scallop",
+          "readyAt": 0
+        },
+        "shell-2": {
+          "item": "sandDollar",
+          "readyAt": 0
+        },
+        "shell-3": {
+          "item": "conch",
+          "readyAt": 0
+        },
+        "shell-4": {
+          "item": "scallop",
+          "readyAt": 0
+        },
+        "shell-5": {
+          "item": "coral",
+          "readyAt": 0
+        },
+        "shell-6": {
+          "item": "sandDollar",
+          "readyAt": 0
+        },
+        "shell-7": {
+          "item": "conch",
+          "readyAt": 0
+        },
+        "shell-8": {
+          "item": "conch",
+          "readyAt": 0
+        },
+        "shell-9": {
+          "item": "scallop",
+          "readyAt": 0
+        }
+      },
+      "dug": [],
+      "fruit": {
+        "fruit-0": {
+          "count": 3,
+          "readyAt": 0,
+          "shakes": 0
+        },
+        "fruit-1": {
+          "count": 3,
+          "readyAt": 0,
+          "shakes": 0
+        },
+        "fruit-2": {
+          "count": 3,
+          "readyAt": 0,
+          "shakes": 0
+        },
+        "fruit-3": {
+          "count": 2,
+          "readyAt": 0,
+          "shakes": 0
+        },
+        "fruit-4": {
+          "count": 3,
+          "readyAt": 0,
+          "shakes": 0
+        },
+        "fruit-5": {
+          "count": 2,
+          "readyAt": 0,
+          "shakes": 0
+        }
+      },
+      "plots": [
+        {
+          "stage": -1,
+          "wet": false,
+          "stageAt": 0,
+          "flower": "hibiscus"
+        },
+        {
+          "stage": -1,
+          "wet": false,
+          "stageAt": 0,
+          "flower": "hibiscus"
+        },
+        {
+          "stage": -1,
+          "wet": false,
+          "stageAt": 0,
+          "flower": "hibiscus"
+        },
+        {
+          "stage": -1,
+          "wet": false,
+          "stageAt": 0,
+          "flower": "hibiscus"
+        }
+      ],
+      "museum": [],
+      "miles": 0,
+      "stats": {},
+      "achieved": [],
+      "daily": {
+        "day": 51,
+        "base": {},
+        "done": []
+      },
+      "bottleDay": 0,
+      "sea": {},
+      "friendship": {},
+      "bells": 3000,
+      "event": {
+        "day": 0,
+        "points": 0,
+        "claimed": []
+      },
+      "wishAt": -1,
+      "recipes": [
+        "bottle",
+        "pot",
+        "water",
+        "torch",
+        "shovel",
+        "rod",
+        "woodKnife",
+        "axe",
+        "worm",
+        "ration",
+        "pickaxe",
+        "basket",
+        "bugNet",
+        "wateringCan",
+        "stoneKnife",
+        "arrow",
+        "ration",
+        "cookedMeat"
+      ],
+      "villagers": [
+        {
+          "id": "villager-tosuni",
+          "name": "토순이",
+          "species": "rabbit",
+          "arrivedDay": 51
+        },
+        {
+          "id": "villager-darong",
+          "name": "다롱이",
+          "species": "squirrel",
+          "arrivedDay": 51
+        },
+        {
+          "id": "villager-geobuk",
+          "name": "거북박사",
+          "species": "turtle",
+          "arrivedDay": 51
+        }
+      ],
+      "weatherDay": 51,
+      "seasonDay": 51,
+      "turnip": {
+        "count": 0,
+        "week": 0
+      },
+      "schema": 4
+    },
+    "resources": {
+      "wood1": 3,
+      "wood2": 3,
+      "jungle-wood": 3,
+      "fiber": 4,
+      "jungle-fiber": 4,
+      "stone": 5,
+      "worm": 3,
+      "shrimp": 3,
+      "coconut": 2,
+      "dig-beach": 3,
+      "dig-jungle": 3,
+      "tree-beach": 4,
+      "tree-grove": 4,
+      "tree-jungle": 4,
+      "frontier-tree-0": 4,
+      "frontier-stone-0": 5,
+      "frontier-fiber-0": 4,
+      "frontier-wood": 3,
+      "frontier-tree-1": 4,
+      "frontier-stone-1": 5,
+      "frontier-fiber-1": 4,
+      "frontier-stone": 5,
+      "frontier-tree-2": 4,
+      "frontier-stone-2": 5,
+      "frontier-fiber-2": 4,
+      "frontier-tree": 4,
+      "frontier-tree-3": 4,
+      "frontier-stone-3": 5,
+      "frontier-fiber-3": 4,
+      "frontier-fiber": 4,
+      "frontier-tree-4": 4,
+      "frontier-stone-4": 5,
+      "frontier-fiber-4": 4,
+      "frontier-dig": 3,
+      "frontier-tree-5": 4,
+      "frontier-stone-5": 5,
+      "frontier-fiber-5": 4
+    },
+    "resourceReady": {},
+    "monsters": []
+  }
+}
