@@ -138,3 +138,12 @@ button{border-radius:10px}
 .news-row p{margin:0;font-size:13.5px;color:#3b2f22}
 .muted-card{opacity:.55;cursor:default}
 #toast{white-space:pre-line}
+
+/* villager home preview inside the friend menu */
+.villager-room{width:min(100%,340px);margin:6px auto;border:6px solid #694d35;border-radius:8px;overflow:hidden;box-shadow:0 8px 0 #352d2544}
+.vr-wall{height:52px;background:repeating-linear-gradient(90deg,#ddc5a0 0 20px,#c8b18f 20px 23px);display:flex;justify-content:space-around;align-items:center}
+.vr-wall i{height:30px;width:36px;background:linear-gradient(#81bcc6 50%,#72904f 50%);border:4px solid #775c3f}
+.vr-floor{position:relative;display:grid;grid-template-columns:repeat(4,1fr);aspect-ratio:2;background:repeating-linear-gradient(0deg,#c7955b 0 26px,#ac7d48 26px 28px)}
+.vr-furniture{display:flex;align-items:center;justify-content:center}
+.vr-furniture .furniture-art{width:52px;height:52px}
+.vr-person{position:absolute;right:10px;bottom:8px;font-size:30px;filter:drop-shadow(0 3px 0 #00000022)}

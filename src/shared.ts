@@ -38,6 +38,8 @@ export const landmarks:Landmark[]=[
  {id:'tree-jungle',name:'정글 나무',x:2640,y:715,kind:'tree'},
  {id:'fishing',name:'낚시 자리',x:785,y:610,kind:'fishing'},
  {id:'jungle',name:'정글 입구',x:1320,y:350,kind:'jungle'},
+ {id:'dock',name:'낡은 부두 · 바다 구경',x:880,y:2050,kind:'dock'},
+ {id:'lighthouse',name:'작은 등대 · 밤불',x:6350,y:3350,kind:'lighthouse'},
  {id:'pool',name:'정글의 샘',x:2460,y:490,kind:'rain'},
  {id:'jungle-wood',name:'정글 나뭇가지',x:2050,y:640,kind:'wood'},
  {id:'jungle-fiber',name:'정글 풀줄기',x:2690,y:680,kind:'fiber'},
@@ -129,6 +131,8 @@ export function act(w:World,id:string,action:string,arg?:unknown):string {const 
  case 'stone':case 'worm':case 'shrimp':case 'wood':case 'fiber':case 'coconut':if(!w.resources[l.id])return `이곳은 쉬는 중이에요. ${resourceWait(w,l.id)}초 뒤 다시 모을 수 있어요.`;w.resources[l.id]--;const collecting=l.kind as Item;const kind=l.kind==='stone'&&p.equipped==='pickaxe'?'mine':l.kind==='fiber'&&['woodKnife','stoneKnife'].includes(p.equipped||'')?'cut':'pickup';const quantity=p.equipped==='basket'?Math.min(3,1+w.resources[l.id]):1;w.resources[l.id]-=quantity-1;if(kind==='mine')wearTool(w,p,'pickaxe');p.gesture={kind,remaining:1,duration:1,item:collecting,target:l.id,rewards:{[collecting]:quantity,...(kind==='mine'&&w.resources[l.id]%2===0?{ironOre:1}:{})}};return `${itemNames[l.kind as Item]} ${quantity}개를 챙기고 있어요.`;
  case 'reef-fishing':case 'fishing':if(!p.bag.rod)return '캠프에서 낚싯대를 먼저 만들어 보세요.';if(p.equipped!=='rod')return '가방을 열어 낚싯대를 손에 들어 주세요.';const bait=l.kind==='reef-fishing'?'shrimp':'worm';if(!take(p,bait))return `${l.kind==='reef-fishing'?'산호 물고기는 새우':'작은 물고기는 지렁이'} 미끼가 필요해요.`;p.activity={kind:'fishing',remaining:.7,stage:'cast',catch:l.kind==='reef-fishing'?'reefFish':'rawFish'};p.input={x:0,y:0,run:false};p.face=-1;return '낚싯줄을 던졌어요. 찌가 완전히 잠기면 E 또는 당기기를 누르세요!';
  case 'jungle':return '여름: 정글 길을 발견했어! 오른쪽 길을 따라 샘과 동굴 입구를 탐험하자.';
+ case 'dock':{const hour=(7.333+(w.elapsed%DAY_SECONDS)*24/DAY_SECONDS)%24;return hour>=18||hour<6?'부두 끝에서 바다를 보니 등대 불빛이 반짝여요. 밤바다는 조심해요!':'부두에 앉아 파도를 구경해요. 배가 오는 날도 있을지도?';}
+ case 'lighthouse':{const hour2=(7.333+(w.elapsed%DAY_SECONDS)*24/DAY_SECONDS)%24;return hour2>=18||hour2<6?'등대 불이 켜졌어요! 빛이 바다를 비춰 길을 알려줘요.':'등대: 밤이 되면 불을 켜서 바다배를 지켜줘요. 올라가 볼까요?';}
  case 'cave':return '여름: 동굴은 조명과 동행 준비가 필요해. 오늘은 입구만 기록하자.';
  default:return lifeInteract(w,p,l)??seaInteract(w,p,l)??socialInteract(w,p,l)??'주변을 살펴봤어요.';}}
 

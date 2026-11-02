@@ -17,7 +17,7 @@ export const MODELS: Record<string, (arg?: string) => Group> = {
   tent: () => P.tent(), cottage: () => P.cottage(), campfire: () => P.campfire(), bench: () => P.logBench(), stump: () => P.stump(),
   barrel: () => P.barrel(), bucket: () => P.bucket(), firewood: () => P.firewood(), backpack: () => P.backpack(), museum: () => P.museum(),
   parasol: () => P.parasol(), lounger: a => P.lounger(a ?? '#3ea7b8'), torch: () => P.tikiTorch(), pier: a => P.pier(num(a, 6)),
-  workbench: () => P.workbench(), board: () => P.board(), stall: () => P.stall(), arch: () => P.jungleArch(), cave: () => P.caveMouth(), clothesline: a => P.clothesline(num(a, 2.6)),
+  workbench: () => P.workbench(), board: () => P.board(), lighthouse: () => P.lighthouse(), stall: () => P.stall(), arch: () => P.jungleArch(), cave: () => P.caveMouth(), clothesline: a => P.clothesline(num(a, 2.6)),
   bush: a => { const [c, seed] = (a ?? '').split('|'); return P.bush(c === 'none' ? null : c || '#e8402f', num(seed, 1)); },
   flowers: a => { const [c, n, seed] = (a ?? '').split('|'); return P.flowerPatch(c || '#e8402f', num(n, 8), num(seed, 1)); },
   stepStone: a => P.steppingStone(num(a, 1)), starfish: () => I.starfish(), shell: a => I.shellItem(a),
@@ -31,7 +31,7 @@ export const MODELS: Record<string, (arg?: string) => Group> = {
 export const SEA_MODELS = new Set(['pier', 'reef', 'bubbles']);
 
 export type Layer = 'prop' | 'flora' | 'actor' | 'critter' | 'fruit';
-const PROP_KINDS = ['camp', 'workbench', 'board', 'bag', 'rain', 'museum', 'shop', 'jungle', 'cave', 'dig', 'buried', 'worm', 'wood', 'fiber', 'coconut', 'fishing', 'reef-fishing', 'shrimp', 'dive', 'shell', 'plot', 'message'];
+const PROP_KINDS = ['camp', 'workbench', 'board', 'dock', 'lighthouse', 'bag', 'rain', 'museum', 'shop', 'jungle', 'cave', 'dig', 'buried', 'worm', 'wood', 'fiber', 'coconut', 'fishing', 'reef-fishing', 'shrimp', 'dive', 'shell', 'plot', 'message'];
 const LAYERS: Record<string, Layer> = {tree: 'flora', stone: 'flora', animal: 'actor', monster: 'actor', friend: 'actor', bug: 'critter', fruit: 'fruit', ...Object.fromEntries(PROP_KINDS.map(k => [k, 'prop' as const]))};
 // Which 3D layer draws a target kind (undefined: nothing would draw it).
 export const drawnBy = (kind: string): Layer | undefined => LAYERS[kind];
@@ -55,6 +55,8 @@ export function targetPlacements(t: Landmark, w: World): Placement[] {
     // The workbench's collision strip is only 25 px deep, so the table is narrower front to back than v7's.
     case 'workbench': return [at('workbench', 0, -11, {scale: [.8, .8, .45]})];
     case 'board': return [at('board', 0, -10)];
+    case 'dock': return [{model: 'pier', x: shore(t.y) - 30, y: t.y + 6, arg: '5.2'}];
+    case 'lighthouse': return [at('lighthouse', 0, -6)];
     case 'bag': return [at('backpack', 0, -6, {turn: .4})];
     case 'rain': return t.id === 'rain' ? [at('barrel', 0, -10), at('bucket', 42, 16)] : [at('bucket', 30, 12)];
     case 'museum': return [at('museum', 0, -80, {scale: .68})];

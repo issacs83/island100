@@ -2,7 +2,7 @@ import {mountHouse} from './house-ui';
 import {SHOP,friendNames,friendship,friendLevel,friendLevels,tasteOf,todaysRequest,sellPrices,shopStock,eventOn,eventProgress,starVisible,boardNews} from './island-social';
 import {seaHabitat} from './island-sea';
 import {hats,shirts,lifeItems,type LifeItem,dayOf} from './island-life';
-import {life,museumCatalog,exchangeOffers,achievements,dailyTasks,DAILY_MILES,COIN_MILES,MUSEUM,bugInfo,lifeItemNames,gardenPlots,weatherOf,weatherNames,toolDurability,usesLeft,craftRecipes,baseRecipes,villagersOf,villagerCandidates,dayOf as lifeDayOf,seasonOf,seasonNames,isTurnipDay,turnipBuyPrice,turnipSellPrice,BOARD} from './island-life';
+import {life,museumCatalog,exchangeOffers,achievements,dailyTasks,DAILY_MILES,COIN_MILES,MUSEUM,bugInfo,lifeItemNames,gardenPlots,weatherOf,weatherNames,toolDurability,usesLeft,craftRecipes,baseRecipes,villagersOf,villagerCandidates,dayOf as lifeDayOf,seasonOf,seasonNames,isTurnipDay,turnipBuyPrice,turnipSellPrice,BOARD,josa} from './island-life';
 import {furnitureArt} from './furniture-art';
 import {encodeSave,decodeSave,saveFilename} from './save-file';
 import {itemArt,itemUse,itemOrder} from './items';
@@ -88,10 +88,12 @@ function panelRequest(a:string,arg:unknown,reopen:()=>void){ready(true);action(a
 function hearts(name:string){const f=friendship(world,name),level=friendLevel(f.points),next=friendLevels[level+1]?.min;return `${'♥'.repeat(level+1)}${'♡'.repeat(3-level)}${next?` (${f.points}/${next})`:''}`;}
 // Friend panel: talk, gift (with taste hints), today's request.
 function friendMenu(name:string,tab='talk'){const p=me(),f=friendship(world,name),day=dayNumber(world.elapsed),taste=tasteOf(name),req=todaysRequest(name,day);
- const tabs=[['talk','이야기'],['gift','선물'],['request','부탁']].map(([k,l])=>`<button class="life-tab ${tab===k?'selected':''}" data-ftab="${k}">${l}</button>`).join('');
+ const isVillager=villagersOf(world).some(v=>v.name===name);
+ const tabs=[['talk','이야기'],['gift','선물'],['request','부탁'],...(isVillager?[['home','집 구경']]:[])].map(([k,l])=>`<button class="life-tab ${tab===k?'selected':''}" data-ftab="${k}">${l}</button>`).join('');
  let body='';
  if(tab==='talk')body=`<p class="friend-line">${f.talkDay===day?'오늘 이미 이야기를 나눴어요. 또 말을 걸어도 좋아요.':'하루에 한 번 이야기하면 우정이 쌓여요.'}</p><button class="primary" data-talk>이야기하기</button><p class="muted">취향: ${taste.note}</p>`;
  if(tab==='gift'){const owned=(Object.entries(p.bag).filter(([k,n])=>n!>0&&!equipable.includes(k as Item)) as [Item,number][]);body=f.giftDay===day?'<p class="muted">오늘은 이미 선물했어요. 내일 또 선물해요.</p>':`<p class="muted">하루에 한 번 선물할 수 있어요. 좋아하는 물건일수록 우정이 많이 올라요.</p><div class="pocket-grid">${owned.map(([k,n])=>`<button class="pocket-slot" data-gift="${k}" title="${itemNames[k]}">${itemArt(k)}<small>${n}</small>${taste.loves.includes(k)?'<i>♥</i>':''}</button>`).join('')}</div>`;}
+ if(tab==='home'&&isVillager){const cand=villagerCandidates.find(c=>c.name===name);body=`<div class="villager-room"><div class="vr-wall"><i></i><i></i></div><div class="vr-floor"><span class="vr-furniture">${furnitureArt('bed')}</span><span class="vr-furniture">${furnitureArt('table')}</span><span class="vr-furniture">${furnitureArt('lamp')}</span><span class="vr-furniture">${furnitureArt('plant')}</span><span class="vr-person">${cand?.icon||'🐾'}</span></div></div><p class="muted">${name}의 방: ${cand?.speciesName||'이웃'} 친구가 직접 꾸민 방이에요.</p>`;}
  if(tab==='request'){const have=p.bag[req.item]||0;body=f.requestDay===day?'<p class="muted">오늘의 부탁을 들어줬어요. 고마워하고 있어요!</p>':`<div class="life-task"><b>${itemArt(req.item)} ${itemNames[req.item]} ${req.n}개 가져다주기</b><span>${have}/${req.n}</span></div><p class="muted">보상: 80마일 · 답례 선물 · 우정 +5</p><button class="primary" data-deliver ${have<req.n?'disabled':''}>건네주기</button>`;}
  sheet(`${name} · ${friendLevels[friendLevel(f.points)].name}`,`<p class="friend-hearts">${hearts(name)}</p><div class="life-tabs">${tabs}</div>${body}`);
  const panel=$('panel'),again=(t:string)=>()=>friendMenu(name,t);

@@ -258,6 +258,16 @@ export function workbench() {
   add(g, new CylinderGeometry(.02, .02, .32, 6), legs, .35, .87, .12).rotation.x = Math.PI / 2;
   return g;
 }
+export function lighthouse() {
+  const g = new Group(), legs = wood();
+  add(g, new CylinderGeometry(.55, .75, 2.2, 12), paint('#f2ede0'), 0, 1.1, 0);
+  for (const [y, h] of [[.45, .28], [1.05, .28], [1.65, .28]]) add(g, new CylinderGeometry(.66 - (y - .45) * .06, .66 - (y - .45) * .06, h, 12), paint('#d8453f'), 0, y, 0);
+  add(g, new CylinderGeometry(.5, .5, .5, 12), paint('#3f4a52'), 0, 2.45, 0);
+  add(g, new CylinderGeometry(.32, .32, .34, 12), paint('#ffe9a0', {roughness: .2, opacity: .85}), 0, 2.45, 0);
+  add(g, new ConeGeometry(.5, .45, 12), paint('#d8453f'), 0, 2.87, 0);
+  add(g, new CylinderGeometry(.09, .12, .5, 8), legs, 0, .25, 0);
+  return g;
+}
 export function board() {
   const g = new Group(), legs = wood();
   for (const x of [-.55, .55]) add(g, new CylinderGeometry(.06, .07, 1.3, 8), legs, x, .65, 0);
