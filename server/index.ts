@@ -4,13 +4,14 @@ import path from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {WebSocketServer,WebSocket} from 'ws';
 import {emptyWorld,addPlayer,setInput,step,act,cleanName,type World} from '../src/shared.ts';
+import {upgradeLife} from '../src/island-life.ts';
 
 const PORT=Number(process.env.PORT||8787),HOST=process.env.HOST||'127.0.0.1';
 const ROOT=path.resolve(process.env.STATIC_DIR||'dist'),DATA=path.resolve(process.env.DATA_DIR||'data');
 type SavedRoom={world:World;keys:Record<string,string>;updated:number};
 const rooms=new Map<string,SavedRoom>(), clients=new Map<WebSocket,{code:string;id:string}>();
 await mkdir(DATA,{recursive:true,mode:0o700});
-try{const saved=JSON.parse(await readFile(path.join(DATA,'rooms.json'),'utf8')) as SavedRoom[];for(const r of saved){if(r.world?.version!==2||Date.now()-r.updated>30*86400000)continue;r.world.resources={...emptyWorld().resources,...r.world.resources};for(const p of Object.values(r.world.players)){p.online=false;p.ready=false;p.input={x:0,y:0,run:false};}rooms.set(r.world.code,r);}}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')console.error('Could not restore rooms:',(e as Error).message);}
+try{const saved=JSON.parse(await readFile(path.join(DATA,'rooms.json'),'utf8')) as SavedRoom[];for(const r of saved){if(r.world?.version!==2||Date.now()-r.updated>30*86400000)continue;r.world.resources={...emptyWorld().resources,...r.world.resources};if(r.world.life)upgradeLife(r.world.life);for(const p of Object.values(r.world.players)){p.online=false;p.ready=false;p.input={x:0,y:0,run:false};}rooms.set(r.world.code,r);}}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')console.error('Could not restore rooms:',(e as Error).message);}
 const mime:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.json':'application/json','.mp3':'audio/mpeg'};
 const server=http.createServer(async(req,res)=>{const url=new URL(req.url||'/',`http://${req.headers.host||'localhost'}`);res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');if(url.pathname==='/health'){res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({ok:true,rooms:rooms.size,players:clients.size}));return;}if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405);res.end();return;}let filename:string;try{filename=decodeURIComponent(url.pathname);}catch{res.writeHead(400);res.end();return;}const file=path.resolve(ROOT,'.'+(filename==='/'?'/index.html':filename));if(!file.startsWith(ROOT+path.sep)){res.writeHead(403);res.end();return;}try{const body=await readFile(file);res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Cache-Control':filename.includes('/assets/')?'public,max-age=31536000,immutable':'no-cache'});res.end(req.method==='HEAD'?undefined:body);}catch{res.writeHead(404);res.end('Not found');}});
 const wss=new WebSocketServer({server,path:'/ws',maxPayload:2048,perMessageDeflate:false});

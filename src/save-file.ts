@@ -1,6 +1,6 @@
 import {restoreHouse,floorOpen,furnitureDistance} from './housing';
 import {resourceRules} from './resources';
-import {restoreLife} from './island-life';
+import {restoreLife,toolDurability} from './island-life';
 import {restoreSwimmer} from './island-sea';
 import {restoreClothes} from './island-social';
 import {WIDTH,HEIGHT,emptyWorld,itemNames,cleanName,equipable,type World,type Player,dayNumber} from './shared';
@@ -15,6 +15,8 @@ export function decodeSave(text:string):World{
  const p:Player={...selected,id:'solo',name:cleanName(selected.name)||'박하준',color:0,bag:bag(selected.bag),online:true,ready:false,input:{x:0,y:0,run:false},moving:false,blocked:false};
  for(const k of ['hp','water','food','stamina'] as const)p[k]=Math.max(0,Math.min(100,p[k]));p.x=Math.max(0,Math.min(WIDTH,p.x));p.y=Math.max(0,Math.min(HEIGHT,p.y));
  if(p.equipped&&(!equipable.includes(p.equipped)||!p.bag[p.equipped]))p.equipped=undefined;if(p.armor!=='leatherVest'||!p.bag.leatherVest)p.armor=undefined;
+ // Tool wear: only known wearables, clamped just under the break limit so a restored tool never snaps.
+ if(selected.toolUse&&typeof selected.toolUse==='object'&&!Array.isArray(selected.toolUse)){p.toolUse={};for(const [k,v] of Object.entries(selected.toolUse)){const max=toolDurability[k as keyof typeof toolDurability];if(max&&typeof v==='number'&&Number.isFinite(v))p.toolUse[k as keyof typeof toolDurability]=Math.max(0,Math.min(max-1,Math.floor(v)));}}
  if(p.gesture){const g=p.gesture;if(!['pickup','dig','equip','fill','cook','craft','eat','drink','mine','cut','net','shake','water','plant','dive'].includes(g.kind)||!Number.isFinite(g.remaining)||g.remaining<0||g.remaining>10||!Number.isFinite(g.duration)||g.duration!<=0||g.duration!>10)throw new Error('행동 기록이 올바르지 않아요.');if(g.item&&!Object.hasOwn(itemNames,g.item))throw new Error('행동 아이템이 올바르지 않아요.');if(g.rewards)bag(g.rewards);if(g.nutrition&&(!Number.isFinite(g.nutrition.food)||!Number.isFinite(g.nutrition.water)||g.nutrition.food<0||g.nutrition.food>100||g.nutrition.water<0||g.nutrition.water>100))throw new Error('회복 기록이 올바르지 않아요.');}
  if(p.activity&&(!['cast','wait','bite','reel','show'].includes(p.activity.stage||'')||!['rawFish','reefFish'].includes(p.activity.catch)||!Number.isFinite(p.activity.remaining)||p.activity.remaining<0||p.activity.remaining>10))throw new Error('낚시 기록이 올바르지 않아요.');
  if(p.swing&&(!['attack','chop'].includes(p.swing.kind)||!Number.isFinite(p.swing.remaining)||p.swing.remaining<0||p.swing.remaining>1||typeof p.swing.target!=='string'))throw new Error('공격 기록이 올바르지 않아요.');

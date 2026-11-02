@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" width="200" height="260">
+  <!-- 거북박사 · 거북이 이웃 (오리지널 캐릭터) -->
+  <g stroke="#6b5138" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- shell -->
+    <path d="M 42 216 Q 42 128 100 128 Q 158 128 158 216 Z" fill="#8a9b5c"/>
+    <path d="M 60 216 Q 60 150 100 150 Q 140 150 140 216 Z" fill="#a5b470" stroke="none"/>
+    <!-- shell star pattern -->
+    <path d="M 100 168 L 106 180 L 118 180 L 108 188 L 112 200 L 100 193 L 88 200 L 92 188 L 82 180 L 94 180 Z" fill="#e9e2c0" stroke="none" opacity=".9"/>
+    <!-- belly rim -->
+    <path d="M 42 216 Q 100 236 158 216" fill="none" stroke="#6b5138" stroke-width="5"/>
+    <!-- feet -->
+    <ellipse cx="72" cy="242" rx="18" ry="11" fill="#9fbc82"/>
+    <ellipse cx="128" cy="242" rx="18" ry="11" fill="#9fbc82"/>
+    <!-- arms -->
+    <ellipse cx="46" cy="200" rx="11" ry="16" fill="#9fbc82" transform="rotate(20 46 200)"/>
+    <ellipse cx="154" cy="200" rx="11" ry="16" fill="#9fbc82" transform="rotate(-20 154 200)"/>
+    <!-- head -->
+    <circle cx="100" cy="92" r="52" fill="#9fbc82"/>
+    <!-- glasses -->
+    <circle cx="80" cy="88" r="15" fill="#fdf8e6"/>
+    <circle cx="122" cy="88" r="15" fill="#fdf8e6"/>
+    <path d="M 95 88 L 107 88" fill="none" stroke-width="4"/>
+    <!-- kind eyes behind glasses -->
+    <path d="M 72 88 Q 80 80 88 88" fill="none" stroke="#3a2e28" stroke-width="4.5"/>
+    <path d="M 114 88 Q 122 80 130 88" fill="none" stroke="#3a2e28" stroke-width="4.5"/>
+    <!-- cheeks -->
+    <ellipse cx="64" cy="106" rx="11" ry="8" fill="#d9a58c" stroke="none" opacity=".7"/>
+    <ellipse cx="138" cy="106" rx="11" ry="8" fill="#d9a58c" stroke="none" opacity=".7"/>
+    <!-- smile -->
+    <path d="M 90 112 Q 100 122 112 112" fill="none" stroke-width="4"/>
+    <!-- bow tie -->
+    <path d="M 84 142 L 100 150 L 84 158 Z M 116 142 L 100 150 L 116 158 Z" fill="#e2c9a0"/>
+    <circle cx="100" cy="150" r="5" fill="#c9a86e"/>
+  </g>
+</svg>

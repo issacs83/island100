@@ -1,9 +1,10 @@
-// Social island life: friendship with 여름 and registered friends (talk, gifts with tastes, daily
-// requests, friendship levels with keepsake rewards), the island shop (sell finds for bells, buy goods),
-// the wardrobe (hats and shirts) and seasonal events (bug-off, fishing tourney, shooting-star night).
+// Social island life: friendship with 여름, registered friends and island villagers (talk, gifts with
+// tastes, daily requests, friendship levels with keepsake rewards), the island shop (sell finds for
+// bells, buy goods), the wardrobe (hats and shirts) and seasonal events (bug-off, fishing tourney,
+// shooting-star night).
 
 import type {World, Player, Landmark, Item} from './shared';
-import {josa, withRewards, setLifeEventHook, life, lifeEvent, lifeItemNames, hats, shirts, hash01, dayOf, hourOf, type LifeItem, type Friendship} from './island-life';
+import {josa, withRewards, setLifeEventHook, life, lifeEvent, lifeItemNames, hats, shirts, hash01, dayOf, hourOf, type LifeItem, type Friendship, villagersOf, villagerHome, unlockRandomRecipe, recipeName} from './island-life';
 
 const YEOREUM = '김여름';
 export const SHOP = {id: 'shop', x: 1180, y: 492};
@@ -72,15 +73,17 @@ export function todaysRequest(name: string, day: number) {
 }
 
 export function friendNames(w: World) {
-  return [YEOREUM, ...w.friends.map(f => f.name)];
+  return [YEOREUM, ...w.friends.map(f => f.name), ...villagersOf(w).map(v => v.name)];
 }
 export function friendship(w: World, name: string): Friendship {
   const L = life(w);
   return (L.friendship[name] ??= {points: 0, talkDay: 0, giftDay: 0, requestDay: 0, rewarded: 0});
 }
-// 여름 walks around as the companion in solo; registered friends live at the camp.
+// 여름 walks around as the companion in solo; registered friends and villagers live at fixed spots.
 export function friendPosition(w: World, name: string) {
   if (name === YEOREUM) return w.companion ? {x: w.companion.x, y: w.companion.y} : {x: 1050, y: 545};
+  const villager = villagersOf(w).find(v => v.name === name);
+  if (villager) return villagerHome(villager.id);
   return CAMP_POINT;
 }
 function near(w: World, p: Player, name: string) {
@@ -93,6 +96,17 @@ const lines: Record<number, string[]> = {
   2: ['우리 둘이면 100일도 금방일 거야.', '밀짚모자 잘 어울린다! 내가 만든 거라 더 그래.', '나중에 구조되면 이 섬 얘기 다 해 줄 거야.'],
   3: ['하준아, 넌 내 베스트 프렌드야. 진짜로.', '사진 아직 갖고 있지? 나도 하나 갖고 있어.', '무슨 일이 있어도 같이 돌아가자.'],
 };
+// Villager neighbours speak with their own voice; {n} becomes their name.
+const villagerLines: Record<number, string[]> = {
+  0: ['{n}: 안녕! 바다 건너에서 이사를 왔어. 잘 부탁해!', '{n}: 이 섬 냄새 참 좋다. 씨앗이랑 열매도 많대?', '{n}: 네가 하준이구나! 여름이가 미리 얘기했어.'],
+  1: ['{n}: 오늘 부탁 들어줘서 고마워. 은혜는 갚는 거야!', '{n}: 비 오는 날엔 물고기 입질이 빨라. 해봐, 진짜야!', '{n}: 우리 집 앞 꽃이 피면 자랑하러 올게.'],
+  2: ['{n}: 이제 우리 단짝이지? 여기가 제2의 고향이야.', '{n}: 네가 준 선물, 매일 보고 있어. 진짜야!', '{n}: 나중에 이 섬 얘기, 온 세상에 소문낼 거야.'],
+  3: ['{n}: 하준, 넌 내 베스트 프렌드야! 동물 약속!', '{n}: 구조되는 날에도 우리는 계속 친구야.', '{n}: 이 섬에 온 게 인생 최고의 행운이야.'],
+};
+function villagerLine(name: string, level: number, seed: string) {
+  const pool = villagerLines[level] ?? villagerLines[0];
+  return pool[Math.floor(hash01('vtalk', name, seed) * pool.length)].replaceAll('{n}', name);
+}
 
 function addPoints(w: World, p: Player, name: string, n: number): string {
   const f = friendship(w, name);
@@ -121,8 +135,10 @@ function socialInner(w: World, p: Player, action: string, arg: unknown): string 
     const f = friendship(w, name);
     if (action === 'social-talk') {
       const level = friendLevel(f.points);
-      const pool = lines[level];
-      const line = name === YEOREUM ? pool[Math.floor(hash01('talk', day, f.points) * pool.length)] : `${name}: 오늘 섬에서 뭐 찾았어? 나는 ${tasteOf(name).note.split('을(를)')[0]} 구경하는 게 좋아!`;
+      const isVillager = villagersOf(w).some(v => v.name === name);
+      const line = isVillager ? villagerLine(name, level, `${day}-${f.points}`)
+        : name === YEOREUM ? lines[level][Math.floor(hash01('talk', day, f.points) * lines[level].length)]
+        : `${name}: 오늘 섬에서 뭐 찾았어? 나는 ${tasteOf(name).note.split('을(를)')[0]} 구경하는 게 좋아!`;
       if (f.talkDay === day) return name === YEOREUM ? `여름: ${line}` : line;
       f.talkDay = day;
       return `${name === YEOREUM ? '여름: ' : ''}${line}${addPoints(w, p, name, 1)}`;
@@ -144,11 +160,15 @@ function socialInner(w: World, p: Player, action: string, arg: unknown): string 
     if ((p.bag[req.item] || 0) < req.n) return `${name}의 부탁: ${(lifeItemNames as Record<string, string>)[req.item] || req.item} ${req.n}개가 필요해요.`;
     take(p, req.item, req.n);
     f.requestDay = day;
-    const gift = requestGifts[Math.floor(hash01('thanks', name, day) * requestGifts.length)];
-    for (const [item, n] of Object.entries(gift)) give(p, item as Item, n!);
+    // Half the time the thank-you gift is a discovered recipe instead of an item.
+    const recipe = hash01('req-recipe', name, day) < 0.55 ? unlockRandomRecipe(w, p, `request-${name}-${day}`) : undefined;
+    if (!recipe) {
+      const gift = requestGifts[Math.floor(hash01('thanks', name, day) * requestGifts.length)];
+      for (const [item, n] of Object.entries(gift)) give(p, item as Item, n!);
+    }
     life(w).miles += 80;
     lifeEvent(w, p, 'request');
-    return `${name}: 정말 고마워! 답례야. · +80마일${addPoints(w, p, name, 5)}`;
+    return `${name}: 정말 고마워! 답례야.${recipe ? ` 이 레시피는 내 비책이야: ${recipeName(recipe)}!` : ''} · +80마일${addPoints(w, p, name, 5)}`;
   }
   if (action === 'shop-sell' || action === 'shop-buy') return shopAction(w, p, action, arg);
   if (action === 'dress') return dress(p, arg);
@@ -290,8 +310,14 @@ export function stepSocial(w: World, players: Player[]) {
 
 // ---------- Targets ----------
 
-export function socialTargets(): Landmark[] {
-  return [{id: SHOP.id, name: '섬 매점 · 팔기/사기', x: SHOP.x, y: SHOP.y, kind: 'shop'}];
+export function socialTargets(w?: World): Landmark[] {
+  const out: Landmark[] = [{id: SHOP.id, name: '섬 매점 · 팔기/사기', x: SHOP.x, y: SHOP.y, kind: 'shop'}];
+  // Villager neighbours stand at their little homes; their landmark id is their name.
+  if (w) for (const v of villagersOf(w)) {
+    const home = villagerHome(v.id);
+    out.push({id: v.name, name: `${v.name} · 이웃`, x: home.x, y: home.y, kind: 'friend'});
+  }
+  return out;
 }
 export function socialInteract(_w: World, _p: Player, l: Landmark): string | undefined {
   if (l.kind === 'shop') return '섬 매점: 찾은 물건을 팔고, 옷과 도구를 살 수 있어요.';

@@ -243,6 +243,7 @@ export const exchangeOffers: Array<{id: string; label: string; cost: number; giv
   {id: 'net-kit', label: '목재 3 · 풀줄기 3', cost: 60, give: {wood: 3, fiber: 3}},
   {id: 'can', label: '물뿌리개', cost: 150, give: {wateringCan: 1}},
   {id: 'suit', label: '잠수복', cost: 250, give: {wetsuit: 1}},
+  {id: 'recipe', label: '수수께끼 레시피', cost: 120, give: {}},
 ];
 export const COIN_MILES = 80;
 
@@ -258,7 +259,130 @@ export const bottleTips = [
   '하트 쪽지: “친구에게 좋아하는 선물을 주면 더 친해져요.”',
 ];
 
-// ---------- State ----------
+// ---------- Weather (deterministic per day, no save field needed) ----------
+
+export type Weather = 'sunny' | 'cloudy' | 'rain' | 'storm';
+export const weatherNames: Record<Weather, {name: string; icon: string}> = {
+  sunny: {name: '맑음', icon: '☀️'}, cloudy: {name: '흐림', icon: '☁️'}, rain: {name: '비', icon: '🌧️'}, storm: {name: '폭풍', icon: '⛈️'},
+};
+// Day 1 is always sunny (the arrival tutorial). Later days roll a fixed hash so every
+// client and reload see the same sky without storing anything.
+export function weatherOf(day: number): Weather {
+  if (day <= 1) return 'sunny';
+  const r = hash01('weather', day);
+  return r < 0.5 ? 'sunny' : r < 0.78 ? 'cloudy' : r < 0.94 ? 'rain' : 'storm';
+}
+// Fish bite sooner in the rain (our own design value for the 300-second day).
+export function fishingWaitFactor(day: number) {
+  const w = weatherOf(day);
+  return w === 'storm' ? 0.5 : w === 'rain' ? 0.6 : 1;
+}
+
+// ---------- Crafting recipes, discovery and tool durability ----------
+
+// Full workbench recipe book. Lives here so both this module and shared.ts (which re-exports it
+// as `recipes`) share one table without an import cycle.
+export const craftRecipes: Partial<Record<string, Partial<Record<string, number>>>> = {
+  ...lifeRecipes,
+  leatherVest: {hide: 3, fiber: 2}, shovel: {wood: 2, stone: 2, fiber: 1}, torch: {wood: 2, fiber: 1},
+  arrow: {wood: 1, stone: 1}, cookedMeat: {rawMeat: 1, wood: 1}, rod: {wood: 3, fiber: 2},
+  woodKnife: {wood: 2}, woodSpear: {wood: 3}, bow: {wood: 3, fiber: 3}, stoneKnife: {stone: 2, fiber: 1},
+  stoneSpear: {stone: 2, wood: 2, fiber: 2}, axe: {stone: 3, wood: 2, fiber: 2}, pickaxe: {stone: 3, wood: 3, fiber: 2},
+  bottle: {coconut: 1, fiber: 2}, pot: {stone: 4, wood: 2}, basket: {fiber: 4, wood: 1}, worm: {fiber: 2},
+  shrimp: {rawFish: 1}, ration: {coconut: 2}, fish: {rawFish: 1, wood: 1}, grilledReef: {reefFish: 1, wood: 1}, water: {rawWater: 1, wood: 1},
+};
+// Recipes known from the first morning: survival water, basic gathering and one cutting tool.
+// Everything else is discovered from bottle letters, friend requests and the museum exchange.
+export const baseRecipes: string[] = ['bottle', 'pot', 'water', 'torch', 'shovel', 'rod', 'woodKnife', 'axe', 'worm', 'ration'];
+// Display names for craftables that are not life items (lifeItemNames covers the rest).
+export const craftNames: Partial<Record<string, string>> = {
+  shovel: '삽', rod: '낚싯대', torch: '횃불', woodKnife: '나무칼', stoneKnife: '돌칼', woodSpear: '나무창', stoneSpear: '돌창',
+  axe: '돌도끼', pickaxe: '돌곡괭이', bow: '활', arrow: '화살', bottle: '물병', pot: '냄비', basket: '바구니',
+  water: '안전한 물', ration: '비상식량', worm: '지렁이 미끼', shrimp: '새우 미끼', rawMeat: '생고기',
+  cookedMeat: '구운 고기', grilledReef: '구운 산호 생선', fish: '구운 생선', leatherVest: '가죽 조끼',
+};
+export function recipeName(key: string) {
+  return craftNames[key] || (lifeItemNames as Record<string, string>)[key] || key;
+}
+export function knowsRecipe(w: World, key: string) {
+  return life(w).recipes.includes(key);
+}
+// Discover one unknown recipe deterministically; returns its display name so the caller's message
+// can include it (every call site already runs inside withRewards).
+export function unlockRandomRecipe(w: World, p: Player | undefined, seed: string): string | undefined {
+  const L = life(w);
+  const locked = Object.keys(craftRecipes).filter(k => !L.recipes.includes(k));
+  if (!locked.length) return undefined;
+  const key = locked[Math.floor(hash01('recipe', seed, L.recipes.length) * locked.length)];
+  L.recipes.push(key);
+  return key;
+}
+
+// Gather tools wear out with use and break at their limit (our own 300-second-day values).
+// Weapons and one-off helpers stay unbreakable for now — noted in the plan document.
+export const toolDurability: Partial<Record<Item, number>> = {
+  shovel: 25, rod: 20, bugNet: 20, wateringCan: 20, axe: 40, pickaxe: 40,
+};
+export const repairCosts: Partial<Record<Item, Partial<Record<string, number>>>> = {
+  shovel: {wood: 1, stone: 1}, rod: {wood: 1, fiber: 1}, bugNet: {wood: 1, fiber: 1},
+  wateringCan: {stone: 1, fiber: 1}, axe: {wood: 1, stone: 1}, pickaxe: {stone: 2},
+};
+export function usesLeft(p: Player, tool: Item) {
+  const max = toolDurability[tool];
+  if (!max) return Infinity;
+  return Math.max(0, max - (p.toolUse?.[tool] || 0));
+}
+export function wearTool(w: World, p: Player, tool: Item | undefined = p.equipped) {
+  if (!tool) return;
+  const max = toolDurability[tool];
+  if (!max || !(p.bag[tool] || 0)) return;
+  const uses = (p.toolUse ??= {});
+  uses[tool] = (uses[tool] || 0) + 1;
+  if (uses[tool]! < max) return;
+  p.bag[tool]!--;
+  if (p.equipped === tool && !p.bag[tool]) p.equipped = undefined;
+  uses[tool] = 0;
+  announce(p, `${josa(recipeName(tool), '은/는')} 망가졌어요! 제작대에서 새로 만들거나 수리해요.`);
+}
+// Repair a worn (not yet broken) tool back to full durability. The workbench proximity check
+// happens in shared.act(); this only validates the tool and its materials.
+export function repairTool(w: World, p: Player, arg: unknown): string {
+  const tool = (typeof arg === 'string' ? arg : '') as Item;
+  if (!toolDurability[tool]) return '수리할 수 있는 도구가 아니에요.';
+  if (!(p.bag[tool] || 0)) return '가방에 그 도구가 없어요.';
+  const uses = p.toolUse?.[tool] || 0;
+  if (!uses) return `${recipeName(tool)}은 아주 튼튼해요. 수리할 필요가 없어요.`;
+  const cost = repairCosts[tool] || {};
+  for (const [item, n] of Object.entries(cost)) if ((p.bag[item as Item] || 0) < n!) return `${recipeName(item)} 재료가 부족해요.`;
+  for (const [item, n] of Object.entries(cost)) takeItem(p, item as Item, n!);
+  p.toolUse![tool] = 0;
+  p.gesture = {kind: 'craft', remaining: 1.4, duration: 1.4, item: tool, target: 'workbench'};
+  return `${recipeName(tool)}을(를) 고쳤어요! 내구도가 가득 찼어요.`;
+}
+
+// ---------- Island villagers: neighbours that move in over the days ----------
+
+export type VillagerSpecies = 'rabbit' | 'squirrel' | 'turtle';
+export type Villager = {id: string; name: string; species: VillagerSpecies; arrivedDay: number};
+export type VillagerCandidate = {id: string; name: string; species: VillagerSpecies; speciesName: string; icon: string; day: number; ear: 'long' | 'tuft' | 'none'; color: number};
+export const villagerCandidates: VillagerCandidate[] = [
+  {id: 'villager-tosuni', name: '토순이', species: 'rabbit', speciesName: '토끼', icon: '🐰', day: 3, ear: 'long', color: 0xd9c4ad},
+  {id: 'villager-darong', name: '다롱이', species: 'squirrel', speciesName: '다람쥐', icon: '🐿️', day: 7, ear: 'tuft', color: 0xc98d5a},
+  {id: 'villager-geobuk', name: '거북박사', species: 'turtle', speciesName: '거북이', icon: '🐢', day: 12, ear: 'none', color: 0x7fa865},
+];
+// Home plots beside the camp; verified standable in tests alongside the other life points.
+export const villagerHomes = [{x: 1560, y: 760}, {x: 1690, y: 640}, {x: 1430, y: 890}].map((p, i) => ({id: `villager-home-${i}`, ...g(p.x, p.y)}));
+export function villagerHome(id: string) {
+  const i = villagerCandidates.findIndex(c => c.id === id);
+  return villagerHomes[i] ?? villagerHomes[0];
+}
+export function villagersOf(w: World): Villager[] {
+  return life(w).villagers;
+}
+// Villager landmarks use the villager's name as their id, so match either field.
+export function villagerByName(w: World, nameOrId: string): Villager | undefined {
+  return life(w).villagers.find(v => v.name === nameOrId || v.id === nameOrId);
+}
 
 export type Flower = 'hibiscus' | 'plumeria' | 'pinkHibiscus';
 export type Plot = {stage: number; wet: boolean; stageAt: number; flower: Flower};
@@ -287,6 +411,12 @@ export type LifeState = {
   wishAt: number;
   // Data layout version for upgrading older saves/rooms.
   schema?: number;
+  // Workbench recipes this island has discovered (always contains baseRecipes).
+  recipes: string[];
+  // Animal neighbours that have moved in (up to 3, on fixed days).
+  villagers: Villager[];
+  // Last day the morning weather was announced.
+  weatherDay: number;
 };
 
 export function emptyLife(): LifeState {
@@ -307,13 +437,16 @@ export function emptyLife(): LifeState {
     bells: 0,
     event: {day: 0, points: 0, claimed: []},
     wishAt: -1,
-    schema: 2,
+    recipes: [...baseRecipes],
+    villagers: [],
+    weatherDay: 0,
+    schema: 3,
   };
 }
 
 // Bump when LifeState gains fields. Older saves and rooms persisted by an older server are upgraded
 // in place by filling every missing field with its default.
-export const LIFE_SCHEMA = 2;
+export const LIFE_SCHEMA = 3;
 export function life(w: World): LifeState {
   const L = (w.life ??= emptyLife());
   if (L.schema !== LIFE_SCHEMA) upgradeLife(L);
@@ -387,6 +520,27 @@ export function stepLife(w: World, outdoors: Player[], dt: number) {
   const day = dayOf(w.elapsed);
   // New day: fresh daily tasks measured from today's starting stats.
   if (L.daily.day !== day) L.daily = {day, base: {...L.stats}, done: []};
+  // Morning weather: announce storms and rain once per day; rain waters the garden by itself.
+  const weather = weatherOf(day);
+  if (L.weatherDay !== day) {
+    L.weatherDay = day;
+    if (weather === 'rain' || weather === 'storm') for (const p of outdoors) announce(p, weather === 'storm' ? '⛈ 오늘은 폭풍우! 밤에는 꼭 캠프 불빛 곁에 있어요.' : '🌧 아침부터 비가 와요. 꽃밭에 물을 줄 필요가 없어요!');
+  }
+  if (weather === 'rain' || weather === 'storm') {
+    L.plots.forEach(plot => {
+      if (plot.stage >= 0 && !plot.wet) {
+        plot.wet = true;
+        plot.stageAt = w.elapsed;
+      }
+    });
+  }
+  // Neighbours move in on their fixed days (deterministic, so saves and co-op rooms agree).
+  for (const c of villagerCandidates) {
+    if (day >= c.day && !L.villagers.some(v => v.id === c.id)) {
+      L.villagers.push({id: c.id, name: c.name, species: c.species, arrivedDay: day});
+      for (const p of outdoors) announce(p, `🏝 ${josa(c.name, '이/가')} 이 섬에 이사를 왔어요! 캠프 근처 작은 집에서 말을 걸어 보세요.`);
+    }
+  }
   // Forget dig records older than yesterday so the save stays small.
   if (L.dug.length > 40) L.dug = L.dug.filter(k => Number(k.split(':')[0]) >= day - 1);
 
@@ -536,6 +690,7 @@ function interactInner(w: World, p: Player, l: Landmark): string | undefined {
       p.face = b.x < p.x ? -1 : 1;
       p.gesture = {kind: 'net', remaining: 0.75, duration: 0.75, item: 'bugNet', target: b.id, rewards: {[b.species]: 1}};
       lifeEvent(w, p, 'bug');
+      wearTool(w, p, 'bugNet');
       return `${josa(lifeItemNames[b.species], '을/를')} 잡았다! 자연관에 기증해 보세요.`;
     }
     case 'shell': {
@@ -556,6 +711,7 @@ function interactInner(w: World, p: Player, l: Landmark): string | undefined {
       const found = buriedFind(day, l.id);
       p.gesture = {kind: 'dig', remaining: 1.3, duration: 1.3, item: 'shovel', target: l.id, rewards: {[found]: 1}};
       lifeEvent(w, p, 'dig');
+      wearTool(w, p, 'shovel');
       if (found === 'fossil') lifeEvent(w, p, 'fossil');
       return found === 'fossil' ? '화석이 나왔어요! 자연관에서 감정을 받아요.' : found === 'clay' ? '점토가 나왔어요.' : '반짝이는 옛날 동전을 찾았어요!';
     }
@@ -606,6 +762,7 @@ function interactInner(w: World, p: Player, l: Landmark): string | undefined {
         p.face = gardenPlots[i].x < p.x ? -1 : 1;
         p.gesture = {kind: 'water', remaining: 1.2, duration: 1.2, item: 'wateringCan', target: l.id};
         lifeEvent(w, p, 'water');
+        wearTool(w, p, 'wateringCan');
         return '핀 꽃에 물을 줬어요. 옆 빈칸으로 꽃이 퍼질 수 있어요. 빨강·하양이 이웃하면 새 색이 필지도!';
       }
       if (plot.stage >= 3) {
@@ -623,6 +780,7 @@ function interactInner(w: World, p: Player, l: Landmark): string | undefined {
       p.face = gardenPlots[i].x < p.x ? -1 : 1;
       p.gesture = {kind: 'water', remaining: 1.2, duration: 1.2, item: 'wateringCan', target: l.id};
       lifeEvent(w, p, 'water');
+      wearTool(w, p, 'wateringCan');
       return '물을 줬어요. 조금 뒤 한 단계 자라요.';
     }
     case 'message': {
@@ -630,7 +788,8 @@ function interactInner(w: World, p: Player, l: Landmark): string | undefined {
       L.bottleDay = day;
       p.gesture = {kind: 'pickup', remaining: 1, duration: 1, item: 'flowerSeed', target: l.id, rewards: {flowerSeed: 2}};
       lifeEvent(w, p, 'message');
-      return `${bottleTips[(day - 1) % bottleTips.length]} · 꽃씨 2봉지가 들어 있었어요!`;
+      const recipe = unlockRandomRecipe(w, p, `bottle-${day}`);
+      return `${bottleTips[(day - 1) % bottleTips.length]} · 꽃씨 2봉지가 들어 있었어요!${recipe ? ` 그리고 접힌 종이에는 ${recipeName(recipe)} 레시피가!` : ''}`;
     }
     case 'museum':
       return '자연관: 기증, 도감, 마일리지 과제와 교환대를 이용할 수 있어요.';
@@ -671,6 +830,14 @@ function actionInner(w: World, p: Player, action: string, arg: unknown): string 
     if (!offer) return '교환할 물건을 골라요.';
     if (L.miles < offer.cost) return `마일리지가 ${offer.cost - L.miles} 부족해요.`;
     L.miles -= offer.cost;
+    if (offer.id === 'recipe') {
+      const key = unlockRandomRecipe(w, p, `exchange-${dayOf(w.elapsed)}-${L.recipes.length}`);
+      if (!key) {
+        L.miles += offer.cost;
+        return '새로운 레시피를 모두 찾았어요. 마일리지는 돌려드렸어요.';
+      }
+      return `수수께끼 레시피를 펼쳤더니 ${recipeName(key)}! 이제 제작대에서 만들 수 있어요. -${offer.cost}마일`;
+    }
     for (const [item, n] of Object.entries(offer.give)) giveItem(p, item as Item, n!);
     return `${josa(offer.label, '을/를')} 받았어요. -${offer.cost}마일`;
   }
@@ -729,11 +896,23 @@ export function restoreLife(source: unknown): LifeState {
       b.respawnAt = num(v.respawnAt, 0, 1e9, 0);
     }
   }
+  // Discovered recipes: always keep the base set, then add valid unlocked keys.
+  if (Array.isArray(s.recipes)) {
+    const known = Object.keys(craftRecipes);
+    for (const k of s.recipes) if (typeof k === 'string' && known.includes(k)) L.recipes.push(k);
+    L.recipes = [...new Set(L.recipes)];
+  }
+  // Villagers: identities must match the candidate list; homes are derived, never trusted from input.
+  if (Array.isArray(s.villagers)) for (const v of s.villagers.slice(0, villagerCandidates.length)) {
+    const c = villagerCandidates.find(c => c?.id === v?.id);
+    if (c && !L.villagers.some(x => x.id === c.id)) L.villagers.push({id: c.id, name: c.name, species: c.species, arrivedDay: Math.floor(num(v.arrivedDay, 1, 1e6, c.day))});
+  }
+  L.weatherDay = Math.floor(num(s.weatherDay, 0, 1e6, 0));
   return L;
 }
 
 // Exposed for tests: every fixed life point must be standable ground.
 export function lifePointsStandable() {
-  const pts = [...shellSpots, ...buriedCandidates, ...gardenPlots, ...bugSpots.filter(b => !bugInfo[b.species].onTree)];
+  const pts = [...shellSpots, ...buriedCandidates, ...gardenPlots, ...villagerHomes, ...bugSpots.filter(b => !bugInfo[b.species].onTree)];
   return pts.filter(p => !canStand(p));
 }

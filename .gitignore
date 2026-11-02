@@ -4,3 +4,4 @@ data/
 release/
 *.log
 .env
+node_modules
